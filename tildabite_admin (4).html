@@ -285,7 +285,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
             <div id="order-details-body" style="font-size:13px;color:var(--text);margin:14px 0;max-height:60vh;overflow-y:auto"></div>
             <div class="modal-actions">
               <button class="btn-cancel" onclick="closeOrderDetails()">Close</button>
-              <button class="btn-confirm" onclick="printOrderSlip()"><i class="ti ti-printer" style="font-size:13px"></i> Print slip</button>
             </div>
           </div>
         </div>
@@ -492,8 +491,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
 <script>
 // ─── SUPABASE CONFIG ─────────────────────────────────────────
-const SUPABASE_URL = 'https://lfrizetfzlrqjdfmvfbd.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_9wruuPO4dvIAJLS9a5rHtA_DjpovXNS';
+const SUPABASE_URL = 'https://loyfgezloleupazlgnmw.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_vnyJlBniwJy0PnLbEtjDXA_v69j1Spu';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let adminSessionToken = null;
@@ -692,7 +691,7 @@ function actionCell(o){
   return '<span style="font-size:11px;color:var(--text3)">Completed</span>';
 }
 function renderOrderRows(orders,targetId){
-  document.getElementById(targetId).innerHTML=orders.map(o=>'<div class="table-row" id="row-'+o.id+'"><div class="table-cell order-id-cell">'+o.id+'</div><div class="table-cell" style="overflow:hidden"><div style="font-weight:600;font-size:13px">'+esc(o.customer)+(o.lat&&o.lng?' <i class="ti ti-map-pin-check" style="font-size:12px;color:var(--green)" title="Precise location pinned"></i>':'')+'</div><div style="font-size:11px;color:var(--text3)">'+o.time+'</div></div><div class="table-cell">₹'+o.amount+'</div><div class="table-cell">'+statusBadge(o.status)+'</div><div class="table-cell" style="font-size:12px;color:var(--text2)">'+(o.rider||'—')+'</div><div class="table-cell" style="display:flex;gap:6px">'+actionCell(o)+' <button class="tb-btn" style="padding:4px 10px;font-size:11px" onclick="openOrderDetails(\''+o.id+'\')"><i class="ti ti-receipt" style="font-size:12px"></i> View</button></div></div>').join('');
+  document.getElementById(targetId).innerHTML=orders.map(o=>'<div class="table-row" id="row-'+o.id+'"><div class="table-cell order-id-cell">'+o.id+'</div><div class="table-cell" style="overflow:hidden"><div style="font-weight:600;font-size:13px">'+esc(o.customer)+(o.lat&&o.lng?' <i class="ti ti-map-pin-check" style="font-size:12px;color:var(--green)" title="Precise location pinned"></i>':'')+'</div><div style="font-size:11px;color:var(--text3)">'+o.time+'</div></div><div class="table-cell">₹'+o.amount+'</div><div class="table-cell">'+statusBadge(o.status)+'</div><div class="table-cell" style="font-size:12px;color:var(--text2)">'+(o.rider||'—')+'</div><div class="table-cell" style="display:flex;gap:6px">'+actionCell(o)+' <button class="tb-btn" style="padding:4px 10px;font-size:11px" onclick="openOrderDetails(\''+o.id+'\')"><i class="ti ti-receipt" style="font-size:12px"></i> View</button> <button class="tb-btn" style="padding:4px 10px;font-size:11px" onclick="printOrderInvoice(\''+o.id+'\')"><i class="ti ti-printer" style="font-size:12px"></i> Print</button></div></div>').join('');
 }
 function renderRecentOrders(){renderOrderRows(ORDERS.slice(0,5),'recent-orders-body');}
 function passesDateFilter(o){
@@ -769,28 +768,32 @@ function openOrderDetails(orderId){
 }
 function closeOrderDetails(){ document.getElementById('order-details-modal').classList.add('hidden'); detailsOrderId = null; }
 
-function printOrderSlip(){
-  const o = ORDERS.find(x=>x.id===detailsOrderId);
+function printOrderInvoice(orderId){
+  const o = ORDERS.find(x=>x.id===orderId);
   if(!o) return;
-  const itemsRows = o.items.map(i=>`<tr><td>${i.name}</td><td style="text-align:center">${i.qty}</td><td style="text-align:right">₹${i.price*i.qty}</td></tr>`).join('');
-  const win = window.open('', '_blank', 'width=380,height=600');
+  const itemsRows = o.items.map(i=>`<tr><td>${esc(i.name)}</td><td style="text-align:center">${i.qty}</td><td style="text-align:right">₹${i.price}</td><td style="text-align:right">₹${i.price*i.qty}</td></tr>`).join('');
+  const cgst = Math.round((o.tax/2)*100)/100;
+  const sgst = Math.round((o.tax-cgst)*100)/100;
+  const win = window.open('', '_blank', 'width=420,height=680');
   win.document.write(`
-    <html><head><title>${o.id} — TildaBite</title>
+    <html><head><title>${o.id} — TildaBite Invoice</title>
     <style>
-      body{font-family:monospace;padding:16px;font-size:13px;color:#000}
-      h2{text-align:center;margin-bottom:0}
-      .sub{text-align:center;font-size:11px;margin-bottom:14px}
+      body{font-family:'Courier New',monospace;padding:18px;font-size:13px;color:#000}
+      h2{text-align:center;margin-bottom:0;letter-spacing:1px}
+      .sub{text-align:center;font-size:11px;margin-bottom:14px;letter-spacing:1px;text-transform:uppercase}
       table{width:100%;border-collapse:collapse;margin:10px 0}
-      td{padding:3px 0}
-      hr{border:none;border-top:1px dashed #000;margin:8px 0}
-      .row{display:flex;justify-content:space-between}
-      .total{font-weight:bold;font-size:15px}
+      th{text-align:left;font-size:11px;border-bottom:1px solid #000;padding:4px 2px}
+      td{padding:4px 2px;font-size:12px}
+      hr{border:none;border-top:1px dashed #000;margin:10px 0}
+      .row{display:flex;justify-content:space-between;padding:2px 0}
+      .total{font-weight:bold;font-size:16px;border-top:1px solid #000;padding-top:6px;margin-top:4px}
+      @media print{ .no-print{display:none} }
     </style></head><body>
       <h2>TildaBite</h2>
-      <div class="sub">Order Slip</div>
+      <div class="sub">Tax Invoice</div>
       <hr>
       <div class="row"><span>Order ID</span><span>${o.id}</span></div>
-      <div class="row"><span>Date</span><span>${o.date} ${o.time}</span></div>
+      <div class="row"><span>Date</span><span>${o.date} · ${o.time}</span></div>
       <div class="row"><span>Status</span><span>${o.status}</span></div>
       <hr>
       <div><strong>Customer:</strong> ${esc(o.customer)}</div>
@@ -799,22 +802,25 @@ function printOrderSlip(){
       <div><strong>Rider:</strong> ${o.rider || 'Not assigned'}</div>
       <hr>
       <table>
-        <tr><td><strong>Item</strong></td><td style="text-align:center"><strong>Qty</strong></td><td style="text-align:right"><strong>Amt</strong></td></tr>
+        <tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Amt</th></tr>
         ${itemsRows}
       </table>
       <hr>
       <div class="row"><span>Subtotal</span><span>₹${o.subtotal}</span></div>
-      <div class="row"><span>Tax</span><span>₹${o.tax}</span></div>
+      <div class="row"><span>CGST</span><span>₹${cgst}</span></div>
+      <div class="row"><span>SGST</span><span>₹${sgst}</span></div>
       <div class="row total"><span>Total</span><span>₹${o.amount}</span></div>
       <hr>
       <div class="row"><span>Delivery OTP</span><span>${o.otp || '—'}</span></div>
       <hr>
       <div style="text-align:center;font-size:11px;margin-top:10px">Thank you for ordering with TildaBite!</div>
+      <div class="no-print" style="text-align:center;margin-top:16px">
+        <button onclick="window.print()" style="padding:8px 18px;font-size:12px;cursor:pointer">Print</button>
+      </div>
     </body></html>
   `);
   win.document.close();
   win.focus();
-  win.print();
 }
 async function confirmAssign(){
   const sel=document.getElementById('rider-select');
