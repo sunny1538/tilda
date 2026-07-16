@@ -3,150 +3,272 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TildaBite Admin Portal</title>
+<title>TildaBite — Order Food Online</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#faf8f5;--surface:#fff;--card:#fffdf9;--border:#ede9e0;--border2:#d8d2c4;
-  --text:#1a1208;--text2:#6b5e45;--text3:#b0a48a;
-  --accent:#f07c1a;--accent2:#ff9c3a;--abg:rgba(240,124,26,0.08);--aborder:rgba(240,124,26,0.25);
-  --green:#16a34a;--gbg:rgba(22,163,74,0.09);--gborder:rgba(22,163,74,0.3);
-  --blue:#2563eb;--bbg:rgba(37,99,235,0.09);--bborder:rgba(37,99,235,0.3);
-  --amber:#b45309;--ambg:rgba(180,83,9,0.09);--amborder:rgba(180,83,9,0.3);
-  --red:#dc2626;--rbg:rgba(220,38,38,0.09);--rborder:rgba(220,38,38,0.3);
-  --radius:9px;
-}
-body.dark{
-  --bg:#0f0f0f;--surface:#1a1a1a;--card:#222;--border:#2e2e2e;--border2:#3a3a3a;
-  --text:#f0f0f0;--text2:#aaa;--text3:#555;
-  --accent:#ff6b35;--accent2:#ff8c55;--abg:rgba(255,107,53,0.12);--aborder:rgba(255,107,53,0.35);
-  --green:#22c55e;--gbg:rgba(34,197,94,0.1);--gborder:rgba(34,197,94,0.3);
-  --blue:#3b82f6;--bbg:rgba(59,130,246,0.1);--bborder:rgba(59,130,246,0.3);
-  --amber:#f59e0b;--ambg:rgba(245,158,11,0.1);--amborder:rgba(245,158,11,0.3);
-  --red:#ef4444;--rbg:rgba(239,68,68,0.1);--rborder:rgba(239,68,68,0.3);
-}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;min-height:100vh}
-.shell{display:flex;min-height:100vh}
-.sidebar{width:230px;flex-shrink:0;background:var(--surface);border-right:1.5px solid var(--border);display:flex;flex-direction:column;padding:0}
-.sidebar-logo{padding:18px 20px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:10px}
-.sidebar-logo svg{height:38px;width:38px;display:block}
-.sidebar-logo-text .brand{font-size:16px;font-weight:800;color:var(--accent);letter-spacing:-0.3px}
-.sidebar-logo-text .sub{font-size:11px;color:var(--text3);font-weight:500}
-.sidebar-nav{padding:12px 10px;flex:1}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:all 0.15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left}
-.nav-item i{font-size:17px;width:20px}
-.nav-item:hover{background:var(--card);color:var(--text)}
-.nav-item.active{background:var(--abg);color:var(--accent);border:1px solid var(--aborder)}
-.nav-item .badge{margin-left:auto;background:var(--accent);color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700}
-.sidebar-footer{padding:14px 10px;border-top:1.5px solid var(--border)}
-.main{flex:1;overflow:hidden;display:flex;flex-direction:column;min-width:0}
-.topbar{background:var(--surface);border-bottom:1.5px solid var(--border);padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.topbar-title{font-size:16px;font-weight:800}
-.topbar-right{display:flex;align-items:center;gap:10px}
-.tb-btn{background:none;border:1px solid var(--border2);color:var(--text2);padding:6px 12px;border-radius:var(--radius);cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px;transition:all 0.15s}
-.tb-btn:hover{border-color:var(--accent);color:var(--accent)}
-.tb-btn.accent{background:var(--accent);color:#fff;border-color:var(--accent)}
-.content{flex:1;overflow-y:auto;padding:20px 24px}
-.view{display:none}
-.view.active{display:block}
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    /* ── TildaBite Light Theme (default) ── */
+    --bg:#FFF8F3;--surface:#FFFFFF;--card:#FFFCFA;--border:#F0E8E0;--border2:#E2D5CA;
+    --text:#2D1506;--text2:#7A5C4A;--text3:#B8977E;
+    --accent:#E8501A;--accent2:#FF6B35;--accent-dark:#C43F12;--accent-bg:rgba(var(--accent-rgb),0.08);--accent-rgb:232,80,26;
+    --green:#16A34A;--green-bg:rgba(22,163,74,0.09);
+    --blue:#2563EB;--blue-bg:rgba(37,99,235,0.09);
+    --red:#DC2626;--radius:12px;--shadow:0 4px 28px rgba(45,21,6,0.10);
+    --gold:#F59E0B;
+  }
+  body.dark{
+    /* ── TildaBite Midnight Kitchen (warm charcoal + ember + ivory) ── */
+    --bg:#0C0A08;--surface:#17130F;--card:#1E1813;--border:#2B241C;--border2:#3C3226;
+    --text:#F4EBDC;--text2:#B7A88F;--text3:#7C6F5A;
+    --accent:#E86B2C;--accent2:#FF8A4C;--accent-dark:#B8501C;--accent-bg:rgba(232,107,44,0.15);--accent-rgb:232,107,44;
+    --green:#7FB88A;--green-bg:rgba(127,184,138,0.14);
+    --blue:#6FA1C9;--blue-bg:rgba(111,161,201,0.14);
+    --red:#E2726A;--radius:12px;--shadow:0 10px 36px rgba(0,0,0,0.5);
+    --gold:#D9A94E;
+  }
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',sans-serif;font-size:15px;transition:background 0.3s,color 0.3s;min-height:100vh;-webkit-font-smoothing:antialiased}
 
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
-.stat-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(180,120,30,0.06)}
-.stat-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
-.stat-val{font-size:26px;font-weight:800;margin-bottom:2px}
-.stat-sub{font-size:11px;color:var(--text3)}
-.stat-card.s-orange .stat-val{color:var(--accent)}
-.stat-card.s-green .stat-val{color:var(--green)}
-.stat-card.s-blue .stat-val{color:var(--blue)}
-.stat-card.s-amber .stat-val{color:var(--amber)}
+  /* NAV */
+  nav{background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 12px rgba(45,21,6,0.06)}
+  body.dark nav{background:rgba(10,10,10,0.85)}
+  .logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+  .logo-img{height:42px;width:42px;display:block}
+  .logo-text{display:flex;flex-direction:column;line-height:1}
+  .logo-name{font-size:18px;font-weight:800;color:var(--accent);letter-spacing:-0.5px}
+  .logo-name span{color:#f59e0b}
+  .logo-tag{font-size:9px;color:var(--text3);font-weight:500;letter-spacing:1px;text-transform:uppercase;margin-top:1px}
+  .nav-right{display:flex;align-items:center;gap:12px}
+  .nav-btn{background:none;border:1.5px solid var(--border2);color:var(--text2);padding:7px 16px;border-radius:50px;cursor:pointer;font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;transition:all 0.2s}
+  .nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .nav-btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;box-shadow:0 3px 12px rgba(var(--accent-rgb),0.28)}
+  .nav-btn.primary:hover{background:linear-gradient(135deg,var(--accent-dark),var(--accent));box-shadow:0 4px 16px rgba(var(--accent-rgb),0.4)}
+  .cart-btn{position:relative}
+  .cart-badge{position:absolute;top:-6px;right:-6px;background:var(--accent);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .theme-toggle{background:none;border:1px solid var(--border2);color:var(--text2);width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all 0.2s}
+  .theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
 
-.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.section-head h2{font-size:14px;font-weight:700}
-.filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
-.filter-btn{background:var(--surface);border:1px solid var(--border);color:var(--text2);padding:5px 12px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:500;transition:all 0.15s}
-.filter-btn:hover,.filter-btn.active{border-color:var(--accent);color:var(--accent);background:var(--abg)}
+  /* VIEWS */
+  .view{display:none}
+  .view.active{display:block}
 
-.orders-table{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden}
-.table-head{display:grid;grid-template-columns:100px 1fr 90px 100px 110px 190px;gap:0;background:var(--card);border-bottom:1px solid var(--border);padding:10px 16px;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
-.table-row{display:grid;grid-template-columns:100px 1fr 90px 100px 110px 190px;gap:0;padding:12px 16px;border-bottom:1px solid var(--border);align-items:center;transition:background 0.15s}
-.table-row:last-child{border-bottom:none}
-.table-row:hover{background:var(--card)}
-.table-cell{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px}
-.order-id-cell{font-weight:700;color:var(--accent);font-size:12px}
-.status-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
-.switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0}
-.switch input{opacity:0;width:0;height:0}
-.switch .slider{position:absolute;cursor:pointer;inset:0;background:var(--border2);border-radius:26px;transition:.2s}
-.switch .slider::before{position:absolute;content:"";height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
-.switch input:checked + .slider{background:var(--green)}
-.switch input:checked + .slider::before{transform:translateX(20px)}
-.s-pending{background:var(--ambg);color:var(--amber);border:1px solid var(--amborder)}
-.s-otw{background:var(--bbg);color:var(--blue);border:1px solid var(--bborder)}
-.s-delivered{background:var(--gbg);color:var(--green);border:1px solid var(--gborder)}
-.s-cancelled{background:var(--rbg);color:var(--red);border:1px solid var(--rborder)}
-.assign-btn{background:var(--bbg);color:var(--blue);border:1px solid var(--bborder);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all 0.15s}
-.assign-btn:hover{background:var(--blue);color:#fff}
-.assigned-pill{background:var(--gbg);color:var(--green);border:1px solid var(--gborder);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px}
+  /* HERO */
+  .hero{background:linear-gradient(160deg,#FFF0E6 0%,#FFF8F3 40%,#FFF5EC 100%);border-bottom:1px solid var(--border);padding:48px 20px 36px;text-align:center;position:relative;overflow:hidden}
+  body.dark .hero{background:radial-gradient(ellipse 680px 380px at 50% -8%, rgba(232,107,44,0.16), transparent 68%), linear-gradient(160deg,#0C0A08 0%,#100D09 55%,#0C0A08 100%)}
+  .hero-logo{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px}
+  .hero-logo-img{height:72px;width:72px;display:block;filter:drop-shadow(0 4px 14px rgba(232,107,44,0.35))}
+  .hero-logo-text .brand-name{font-size:36px;font-weight:900;letter-spacing:-1.5px;line-height:1}
+  .hero-logo-text .brand-name .tilda{color:var(--text)}
+  .hero-logo-text .brand-name .bite{color:var(--accent)}
+  .hero-logo-text .brand-tag{font-size:12px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+  .hero h1{font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;color:var(--text)}
+  .hero h1 span{color:var(--accent)}
+  .hero p{color:var(--text2);font-size:15px;margin-bottom:24px}
+  .search-bar{max-width:480px;margin:0 auto;display:flex;gap:0;background:var(--surface);border:1.5px solid var(--border2);border-radius:50px;overflow:hidden;padding:4px;box-shadow:0 4px 20px rgba(var(--accent-rgb),0.10)}
+  .search-bar input{flex:1;background:none;border:none;outline:none;color:var(--text);padding:8px 16px;font-size:14px}
+  .search-bar input::placeholder{color:var(--text3)}
+  .search-bar button{background:var(--accent);border:none;color:#fff;padding:8px 20px;border-radius:40px;cursor:pointer;font-size:13px;font-weight:600}
 
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:200}
-.modal-bg.hidden{display:none}
-.modal{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
-.modal h3{font-size:15px;font-weight:800;margin-bottom:4px}
-.modal p{font-size:12px;color:var(--text2);margin-bottom:18px}
-.modal-field{margin-bottom:14px}
-.modal-field label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px}
-.modal-field select,.modal-field input{width:100%;background:var(--bg);border:1.5px solid var(--border2);color:var(--text);padding:8px 12px;border-radius:var(--radius);font-size:13px;outline:none}
-.modal-field select:focus,.modal-field input:focus{border-color:var(--accent)}
-.modal-actions{display:flex;gap:8px;justify-content:flex-end}
-.btn-cancel{background:none;border:1px solid var(--border2);color:var(--text2);padding:8px 16px;border-radius:var(--radius);cursor:pointer;font-size:13px}
-.btn-confirm{background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:var(--radius);cursor:pointer;font-size:13px;font-weight:700}
+  /* CATEGORIES */
+  .categories{padding:20px 20px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+  .categories::-webkit-scrollbar{display:none}
+  .cat-btn{background:var(--surface);border:1.5px solid var(--border);color:var(--text2);padding:8px 18px;border-radius:50px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap;transition:all 0.2s;flex-shrink:0;box-shadow:0 1px 4px rgba(45,21,6,0.06)}
+  .cat-btn:hover,.cat-btn.active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);font-weight:600}
 
-.riders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
-.rider-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(180,120,30,0.06)}
-.rider-avatar{width:44px;height:44px;border-radius:50%;background:var(--bbg);border:2px solid var(--bborder);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:var(--blue);margin-bottom:10px}
-.rider-name{font-size:14px;font-weight:700;margin-bottom:2px}
-.rider-phone{font-size:12px;color:var(--text2);margin-bottom:10px}
-.rider-stats{display:flex;gap:10px;margin-bottom:12px}
-.r-stat{flex:1;text-align:center;background:var(--card);border-radius:8px;padding:6px}
-.r-stat-val{font-size:16px;font-weight:800;color:var(--accent)}
-.r-stat-label{font-size:10px;color:var(--text3)}
-.rider-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
-.r-available{background:var(--gbg);color:var(--green);border:1px solid var(--gborder)}
-.r-busy{background:var(--ambg);color:var(--amber);border:1px solid var(--amborder)}
-.r-offline{background:var(--card);color:var(--text3);border:1px solid var(--border)}
+  /* MENU GRID */
+  .section-title{padding:20px 20px 12px;font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
+  .menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:0 20px 100px}
+  .menu-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:transform 0.22s ease,box-shadow 0.22s ease,border-color 0.2s;cursor:pointer;box-shadow:0 2px 10px rgba(45,21,6,0.05)}
+  .menu-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 8px 28px rgba(var(--accent-rgb),0.14)}
+  .menu-card-img{height:150px;display:flex;align-items:center;justify-content:center;font-size:68px;background:linear-gradient(145deg,#FFF0E6,#FFF8F3)}
+  .menu-card-body{padding:14px}
+  .menu-card-body h3{font-size:15px;font-weight:600;margin-bottom:4px}
+  .menu-card-body p{font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.4}
+  .menu-card-footer{display:flex;align-items:center;justify-content:space-between}
+  .price{font-size:17px;font-weight:800;color:var(--accent)}
+  .add-btn{background:var(--accent);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all 0.2s;box-shadow:0 3px 10px rgba(var(--accent-rgb),0.3)}
+  .add-btn:hover{background:var(--accent2);transform:scale(1.1);box-shadow:0 4px 14px rgba(var(--accent-rgb),0.4)}
+  .qty-control{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:2px 8px}
+  .qty-btn{background:none;border:none;color:var(--accent);cursor:pointer;font-size:16px;font-weight:700;width:24px;height:24px;display:flex;align-items:center;justify-content:center}
+  .qty-num{font-size:13px;font-weight:600;min-width:16px;text-align:center}
+  .veg-tag{display:inline-block;background:rgba(22,163,74,0.09);color:#16A34A;border:1px solid rgba(22,163,74,0.3);border-radius:6px;font-size:10px;font-weight:700;padding:2px 8px;margin-bottom:6px;letter-spacing:0.5px}
+  .nonveg-tag{display:inline-block;background:rgba(220,38,38,0.08);color:#DC2626;border:1px solid rgba(220,38,38,0.25);border-radius:6px;font-size:10px;font-weight:700;padding:2px 8px;margin-bottom:6px;letter-spacing:0.5px}
 
-.notif-form{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:20px;max-width:520px}
-.notif-form h3{font-size:14px;font-weight:700;margin-bottom:16px}
-.nf-field{margin-bottom:14px}
-.nf-field label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px}
-.nf-field select,.nf-field input,.nf-field textarea{width:100%;background:var(--bg);border:1.5px solid var(--border2);color:var(--text);padding:9px 12px;border-radius:var(--radius);font-size:13px;outline:none;font-family:inherit}
-.nf-field textarea{min-height:80px;resize:vertical}
-.nf-field select:focus,.nf-field input:focus,.nf-field textarea:focus{border-color:var(--accent)}
-.send-btn{background:var(--accent);color:#fff;border:none;padding:10px 20px;border-radius:var(--radius);cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}
-.notif-log{margin-top:20px}
-.notif-item{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start}
-.notif-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
-.ni-order{background:var(--bbg);color:var(--blue)}
-.ni-promo{background:var(--abg);color:var(--accent)}
-.ni-alert{background:var(--ambg);color:var(--amber)}
-.notif-content h4{font-size:13px;font-weight:600;margin-bottom:2px}
-.notif-content p{font-size:12px;color:var(--text2)}
-.notif-meta{margin-left:auto;font-size:11px;color:var(--text3);white-space:nowrap}
+  /* CART DRAWER */
+  .cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;display:none;backdrop-filter:blur(2px)}
+  .cart-overlay.open{display:flex;justify-content:flex-end}
+  .cart-drawer{background:var(--surface);width:100%;max-width:400px;height:100%;display:flex;flex-direction:column;border-left:1px solid var(--border);box-shadow:-8px 0 40px rgba(45,21,6,0.12)}
+  .cart-header{padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .cart-header h2{font-size:18px;font-weight:700}
+  .close-btn{background:none;border:1px solid var(--border2);color:var(--text2);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
+  .close-btn:hover{border-color:var(--red);color:var(--red)}
+  .cart-items{flex:1;overflow-y:auto;padding:16px}
+  .cart-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+  .cart-item-emoji{font-size:32px;width:48px;text-align:center}
+  .cart-item-info{flex:1}
+  .cart-item-info h4{font-size:14px;font-weight:600;margin-bottom:2px}
+  .cart-item-info p{font-size:12px;color:var(--text2)}
+  .cart-empty{text-align:center;padding:60px 20px;color:var(--text3)}
+  .cart-empty i{font-size:48px;margin-bottom:12px;display:block}
+  .cart-footer{padding:16px;border-top:1px solid var(--border)}
+  .cart-total-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px}
+  .cart-total-row.grand{font-size:16px;font-weight:700;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+  .checkout-btn{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:15px;border-radius:var(--radius);font-size:15px;font-weight:700;cursor:pointer;margin-top:12px;transition:all 0.2s;box-shadow:0 4px 16px rgba(var(--accent-rgb),0.3)}
+  .checkout-btn:hover{background:linear-gradient(135deg,var(--accent-dark),var(--accent));transform:translateY(-1px);box-shadow:0 6px 20px rgba(var(--accent-rgb),0.4)}
+  .delivery-info{display:flex;align-items:center;gap:8px;background:var(--green-bg);border:1px solid var(--green);border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;color:var(--green)}
 
-.toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1.5px solid var(--accent);color:var(--text);padding:10px 18px;border-radius:30px;font-size:13px;font-weight:600;z-index:999;opacity:0;transform:translateY(12px);transition:all 0.25s;display:flex;align-items:center;gap:8px;pointer-events:none;box-shadow:0 4px 20px rgba(240,124,26,0.15)}
-.toast.show{opacity:1;transform:translateY(0)}
-.toast i{color:var(--accent)}
+  /* AUTH VIEW */
+  .auth-container{min-height:calc(100vh - 64px);display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(160deg,#FFF0E6 0%,#FFF8F3 60%,#FFFDF9 100%)}
+  .auth-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;width:100%;max-width:420px;box-shadow:0 8px 40px rgba(45,21,6,0.10)}
+  .auth-logo{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:20px}
+  .auth-logo-img{height:52px;width:52px;display:block}
+  .auth-logo-name{font-size:22px;font-weight:900;letter-spacing:-0.5px}
+  .auth-logo-name .t{color:var(--text)}.auth-logo-name .b{color:var(--accent)}
+  .auth-card h2{font-size:20px;font-weight:700;margin-bottom:6px;text-align:center}
+  .auth-card p{color:var(--text2);font-size:14px;margin-bottom:28px;text-align:center}
+  .form-group{margin-bottom:16px}
+  .form-group label{display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px}
+  .form-group input{width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--text);padding:10px 14px;border-radius:var(--radius);font-size:14px;outline:none;transition:border-color 0.2s}
+  .form-group input:focus{border-color:var(--accent)}
+  .form-group input::placeholder{color:var(--text3)}
+  .auth-submit{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:14px;border-radius:var(--radius);font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;box-shadow:0 4px 16px rgba(var(--accent-rgb),0.3);transition:all 0.2s}
+  .auth-submit:hover{background:var(--accent2)}
+  .auth-switch{text-align:center;margin-top:20px;font-size:13px;color:var(--text2)}
+  .auth-switch a{color:var(--accent);text-decoration:none;cursor:pointer;font-weight:500}
+  .divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--text3);font-size:12px}
+  .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:#2D1506;border:none;color:#fff;padding:12px 22px;border-radius:50px;font-size:13px;font-weight:600;z-index:999;transition:transform 0.32s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(45,21,6,0.25)}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast i{color:#4ADE80}
+
+  /* BOTTOM NAV */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;z-index:100;box-shadow:0 -4px 20px rgba(45,21,6,0.07)}
+  body.dark .bottom-nav{background:rgba(10,10,10,0.9)}
+  .bottom-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0 8px;cursor:pointer;color:var(--text3);font-size:10px;gap:3px;transition:color 0.2s;border:none;background:none}
+  .bottom-nav-item i{font-size:22px}
+  .bottom-nav-item.active{color:var(--accent)}
+  .bottom-nav-item:hover{color:var(--accent)}
+
+  /* ORDER VIEW */
+  .orders-container{padding:20px;max-width:600px;margin:0 auto;padding-bottom:100px}
+  .order-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 2px 12px rgba(45,21,6,0.06);transition:box-shadow 0.2s}
+  .order-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+  .order-id{font-size:12px;color:var(--text3)}
+  .order-status{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
+  .status-delivered{background:var(--green-bg);color:var(--green)}
+  .status-preparing{background:rgba(251,191,36,0.15);color:#fbbf24}
+  .status-otw{background:var(--blue-bg);color:var(--blue)}
+  .order-items-list{font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.8}
+  .order-footer{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--border)}
+  .reorder-btn{background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
+
+  /* PROFILE */
+  .profile-container{padding:20px;max-width:500px;margin:0 auto;padding-bottom:100px}
+  .profile-header{background:linear-gradient(145deg,#FFF0E6,#FFF8F3);border:1px solid var(--border);border-radius:18px;padding:28px;text-align:center;margin-bottom:16px}
+  .profile-avatar{width:72px;height:72px;background:var(--accent-bg);border:2px solid var(--accent);border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--accent)}
+  .profile-name{font-size:18px;font-weight:700;margin-bottom:4px}
+  .profile-email{font-size:13px;color:var(--text2)}
+  .profile-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:14px;box-shadow:0 2px 10px rgba(45,21,6,0.05)}
+  .profile-item{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.2s}
+  .profile-item:last-child{border-bottom:none}
+  .profile-item:hover{background:var(--surface)}
+  .profile-item i{font-size:18px;color:var(--text3);width:24px}
+  .profile-item span{flex:1;font-size:14px}
+  .profile-item .chevron{color:var(--text3);font-size:14px}
+
+  /* CHECKOUT */
+  .checkout-view{padding:20px;max-width:560px;margin:0 auto;padding-bottom:100px}
+  .checkout-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 2px 10px rgba(45,21,6,0.05)}
+  .checkout-section h3{font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .checkout-section h3 i{color:var(--accent)}
+  .address-input{width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--text);padding:10px 14px;border-radius:var(--radius);font-size:14px;outline:none;resize:vertical;min-height:70px;font-family:inherit}
+  .address-input:focus{border-color:var(--accent)}
+  .pin-loc-btn{width:100%;margin-top:10px;background:var(--accent-bg);border:1.5px dashed var(--accent);color:var(--accent);padding:11px;border-radius:var(--radius);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s}
+  .pin-loc-btn:hover{background:var(--accent-bg)}
+  .pin-loc-status{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--green);margin-top:8px;font-weight:600}
+  .deliver-to-card{display:flex;align-items:center;gap:12px;background:var(--surface);border:1.5px dashed var(--accent);border-radius:14px;padding:14px;cursor:pointer;transition:all 0.2s}
+  .deliver-to-card:hover{background:var(--accent-bg)}
+  .deliver-to-card.filled{border-style:solid;border-color:var(--border2)}
+  .deliver-to-icon{width:38px;height:38px;border-radius:50%;background:var(--accent-bg);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+  .deliver-to-icon.confirmed{background:rgba(76,175,80,0.14);color:var(--green)}
+  .deliver-to-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .deliver-to-text strong{font-size:13.5px;font-weight:700}
+  .deliver-to-text span{font-size:12.5px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .deliver-to-dist{color:var(--green)!important;font-weight:600!important;-webkit-line-clamp:1!important}
+  .deliver-to-change{flex-shrink:0;background:none;border:1.5px solid var(--accent);color:var(--accent);font-size:12px;font-weight:700;padding:7px 14px;border-radius:20px;cursor:pointer}
+  .deliver-to-change:hover{background:var(--accent-bg)}
+  .deliver-to-card.selected{border-style:solid;border-color:var(--accent);background:var(--accent-bg)}
+  .deliver-to-check{color:var(--green);font-size:20px;flex-shrink:0}
+  .loc-manual-fields{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+  .loc-field-label{font-size:12.5px;font-weight:700;color:#555;margin-bottom:-4px}
+  body.dark .loc-modal .loc-field-label{color:#bbb}
+  #loc-status-box{display:flex;align-items:center;gap:8px;font-size:13px;color:#a33;margin-top:10px;padding:10px 14px;background:#fdecea;border-radius:10px;border-left:3px solid #e53935}
+  body.dark #loc-status-box{background:#3a1414;color:#f5b0ac}
+  .loc-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:400;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px);padding:16px}
+  .loc-modal-overlay.open{display:flex}
+  .loc-modal{background:#fff;color:#1a1a1a;width:100%;max-width:460px;border-radius:18px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,0.35)}
+  body.dark .loc-modal{background:#141414;color:#f0f0f0}
+  .loc-modal h3{font-size:16px;font-weight:800;margin-bottom:2px}
+  .loc-modal .loc-sub{font-size:12px;color:#777;margin-bottom:12px}
+  body.dark .loc-modal .loc-sub{color:#999}
+  #loc-status-box{display:flex;align-items:center;gap:8px;font-size:13px;color:#444;margin-bottom:10px;padding:10px 14px;background:#fff8e1;border-radius:10px;border-left:3px solid #f5a623}
+  body.dark #loc-status-box{background:#332b0f;color:#e8dcb0}
+  #loc-status-box.confirmed{background:#e8f5e9;border-left-color:#4caf50}
+  body.dark #loc-status-box.confirmed{background:#0f2e18;color:#a6e6b8}
+  #loc-map{height:300px;border-radius:14px;overflow:hidden;border:1px solid #eee}
+  body.dark #loc-map{border-color:#2a2a2a}
+  #loc-coords-box{margin-top:10px;padding:10px 14px;background:#f8f8f5;border-radius:10px;font-size:12.5px;color:#333}
+  body.dark #loc-coords-box{background:#1c1c1c;color:#ddd}
+  .loc-btn-row{display:flex;gap:10px;margin-top:12px}
+  .loc-btn-row button{flex:1;padding:12px;border-radius:10px;border:none;font-size:13.5px;font-weight:700;cursor:pointer}
+  #loc-locate-btn{background:#eef2ff;color:#4f46e5}
+  #loc-confirm-btn{background:#ff5722;color:#fff}
+  #loc-cancel-btn{background:none;border:1px solid #ddd;color:#777;width:100%;margin-top:10px;padding:10px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer}
+  body.dark #loc-cancel-btn{border-color:#333;color:#999}
+  .payment-opt{display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);cursor:pointer;margin-bottom:8px;transition:border-color 0.2s}
+  .payment-opt.selected{border-color:var(--accent)}
+  .payment-opt input[type=radio]{accent-color:var(--accent)}
+  .payment-label{flex:1}
+  .payment-label strong{font-size:14px;display:block}
+  .payment-label span{font-size:12px;color:var(--text2)}
+  .pay-btn{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:16px;border-radius:var(--radius);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 18px rgba(var(--accent-rgb),0.32);transition:all 0.2s}
+  .pay-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(var(--accent-rgb),0.4)}
+
+  /* ── SKELETON LOADING ─────────────────────────────────────── */
+  @keyframes shimmer{0%{background-position:-700px 0}100%{background-position:700px 0}}
+  .skeleton-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:0 20px 100px}
+  .skeleton-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(45,21,6,0.05)}
+  body.dark .skeleton-card{background:var(--card)}
+  .skeleton-img{height:150px;background:linear-gradient(90deg,var(--border) 25%,var(--border2) 50%,var(--border) 75%);background-size:700px 100%;animation:shimmer 1.4s infinite linear}
+  .skeleton-body{padding:14px}
+  .skeleton-line{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--border) 25%,var(--border2) 50%,var(--border) 75%);background-size:700px 100%;animation:shimmer 1.4s infinite linear;margin-bottom:10px}
+  .skeleton-line.short{width:55%}
+  .skeleton-line.tag{width:38%;height:10px}
+  .skeleton-footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+  .skeleton-price{width:48px;height:20px;border-radius:6px;background:linear-gradient(90deg,var(--border) 25%,var(--border2) 50%,var(--border) 75%);background-size:700px 100%;animation:shimmer 1.4s infinite linear}
+  .skeleton-btn{width:34px;height:34px;border-radius:50%;background:linear-gradient(90deg,var(--border) 25%,var(--border2) 50%,var(--border) 75%);background-size:700px 100%;animation:shimmer 1.4s infinite linear}
+
+  /* ── VEG / NON-VEG TOGGLE ─────────────────────────────────── */
+  .diet-filter-bar{padding:12px 20px 4px;display:flex;align-items:center;gap:10px}
+  .diet-toggle-wrap{display:flex;background:var(--surface);border:1.5px solid var(--border2);border-radius:50px;padding:3px;gap:3px}
+  .diet-btn{background:none;border:none;padding:6px 16px;border-radius:40px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);transition:all 0.22s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+  .diet-btn .dot{width:9px;height:9px;border-radius:50%;border:1.5px solid currentColor;display:inline-block;flex-shrink:0}
+  .diet-btn.active-all{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(var(--accent-rgb),0.28)}
+  body.dark .cat-btn,body.dark .menu-card,body.dark .cart-drawer,body.dark .auth-card,body.dark .order-card,body.dark .profile-section,body.dark .checkout-section,body.dark .skeleton-card,body.dark nav,body.dark .bottom-nav{box-shadow:var(--shadow)}
+  .diet-btn.active-veg{background:#16A34A;color:#fff;box-shadow:0 2px 8px rgba(22,163,74,0.28)}
+  .diet-btn.active-nonveg{background:#DC2626;color:#fff;box-shadow:0 2px 8px rgba(220,38,38,0.28)}
+  .diet-btn.active-veg .dot,.diet-btn.active-nonveg .dot,.diet-btn.active-all .dot{border-color:#fff}
+  .diet-count-badge{font-size:11px;font-weight:600;background:var(--accent-bg);color:var(--accent);border-radius:20px;padding:2px 8px;margin-left:auto}
 </style>
+<style>.hidden{display:none !important}</style>
 
-<div class="toast" id="toast"><i class="ti ti-circle-check"></i><span id="tmsg"></span></div>
-
-<!-- ADMIN LOGIN SCREEN -->
-<div id="admin-login-screen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#fff8f0,#fff3e5)">
-  <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:20px;padding:40px 36px;width:100%;max-width:380px;box-shadow:0 8px 40px rgba(180,120,30,0.12)">
-    <div style="text-align:center;margin-bottom:28px">
-      <svg style="display:none" aria-hidden="true"><defs><symbol id="tildabite-mark" viewBox="0 0 100 100">
+<svg style="display:none" aria-hidden="true"><defs><symbol id="tildabite-mark" viewBox="0 0 100 100">
 <circle cx="53" cy="48" r="30" fill="#E86B2C"/>
 <rect x="4" y="52" width="17" height="5" rx="2.5" fill="#E86B2C"/>
 <rect x="9" y="61" width="14" height="5" rx="2.5" fill="#E86B2C"/>
@@ -164,976 +286,1218 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 <path d="M26 82 Q26 56 53 56 Q80 56 80 82 Z" fill="#FFFFFF" stroke="#5A3210" stroke-width="2.6" stroke-linejoin="round"/>
 <circle cx="53" cy="55" r="2.8" fill="#FFFFFF" stroke="#5A3210" stroke-width="2.4"/>
 </symbol></defs></svg>
-<svg viewBox="0 0 100 100" role="img" aria-label="TildaBite" style="height:64px;width:64px;margin-bottom:10px"><use href="#tildabite-mark"/></svg>
-      <div style="font-size:24px;font-weight:900;color:var(--accent);letter-spacing:-0.5px">TildaBite</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:4px;font-weight:500">Admin Portal · Restricted Access 🔒</div>
-    </div>
-    <div style="margin-bottom:14px">
-      <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px">Admin ID</label>
-      <input type="email" id="admin-id-input" placeholder="admin@tildabite.com" style="width:100%;background:var(--bg);border:1.5px solid var(--border2);color:var(--text);padding:10px 14px;border-radius:var(--radius);font-size:14px;outline:none" onkeydown="if(event.key==='Enter')adminLogin()">
-    </div>
-    <div style="margin-bottom:20px">
-      <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px">Password</label>
-      <input type="password" id="admin-pass-input" placeholder="••••••••" style="width:100%;background:var(--bg);border:1.5px solid var(--border2);color:var(--text);padding:10px 14px;border-radius:var(--radius);font-size:14px;outline:none" onkeydown="if(event.key==='Enter')adminLogin()">
-    </div>
-    <div id="admin-login-error" style="display:none;background:var(--rbg);border:1px solid var(--rborder);color:var(--red);padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:14px;text-align:center"></div>
-    <button onclick="adminLogin()" style="width:100%;background:var(--accent);color:#fff;border:none;padding:12px;border-radius:var(--radius);font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(240,124,26,0.25)">Sign in to Admin Panel</button>
+<h2 class="sr-only">TildaBite – food ordering app</h2>
 
+<!-- TOAST -->
+<div class="toast" id="toast"><i class="ti ti-circle-check"></i><span id="toast-msg">Added to cart!</span></div>
+
+<!-- STORE CLOSED OVERLAY -->
+<div id="closed-overlay" class="hidden" style="position:fixed;inset:0;background:linear-gradient(160deg,var(--bg),var(--card));z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto">
+  <div style="max-width:420px;width:100%;text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px 28px;box-shadow:0 20px 60px rgba(45,21,6,0.12)">
+    <div style="font-size:56px;margin-bottom:6px">😴</div>
+    <div style="display:inline-flex;align-items:center;gap:6px;background:var(--accent-bg);color:var(--accent);border:1px solid var(--border);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">
+      <i class="ti ti-clock" style="font-size:13px"></i> We'll be available soon
+    </div>
+    <h2 style="font-size:21px;font-weight:800;margin-bottom:10px">We're closed right now</h2>
+    <p style="color:var(--text2);font-size:14px;line-height:1.6;margin-bottom:4px">Our kitchen is currently closed.<br>We'll be back and cooking fresh at <strong id="closed-opening-time">10:00 AM</strong>.</p>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:20px">Thanks for your patience — see you soon! 🍽️</p>
+
+    <div id="closed-countdown" style="background:var(--accent-bg);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:18px">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Opening in</div>
+      <div id="closed-countdown-text" style="font-size:22px;font-weight:800;color:var(--accent)">—</div>
+    </div>
+
+    <div style="font-size:13px;color:var(--text2);margin-bottom:20px">
+      <i class="ti ti-clock" style="font-size:14px;vertical-align:-2px"></i>
+      Today's hours: <strong id="closed-hours-text">10:00 AM – 11:00 PM</strong>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="nav-btn primary" style="width:100%;justify-content:center;padding:12px" onclick="requestOpenNotify()"><i class="ti ti-bell-ringing"></i> Notify me when open</button>
+      <button class="nav-btn" id="closed-call-btn" style="width:100%;justify-content:center;padding:12px;display:none" onclick="callRestaurant()"><i class="ti ti-phone"></i> Call us to order</button>
+      <button class="nav-btn" style="width:100%;justify-content:center;padding:12px" onclick="browseMenuReadOnly()"><i class="ti ti-menu-2"></i> Browse menu (can't order yet)</button>
+    </div>
   </div>
 </div>
 
-<div class="shell" id="admin-shell" style="display:none">
-  <div class="sidebar">
-    <div class="sidebar-logo">
-      <svg viewBox="0 0 100 100" role="img" aria-label="TildaBite"><use href="#tildabite-mark"/></svg>
-      <div class="sidebar-logo-text">
-        <div class="brand">TildaBite</div>
-        <div class="sub">Admin Panel</div>
+<!-- BROWSING-WHILE-CLOSED BANNER -->
+<div id="closed-banner" class="hidden" style="position:fixed;top:0;left:0;right:0;z-index:400;background:var(--accent);color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:13px;font-weight:600">
+  <i class="ti ti-lock" style="font-size:15px"></i>
+  <span>We'll be available soon — you're browsing only</span>
+  <button onclick="showClosedOverlay()" style="background:rgba(255,255,255,0.25);border:none;color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer">Back</button>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a class="logo" href="#">
+    <svg class="logo-img" viewBox="0 0 100 100" role="img" aria-label="TildaBite Logo"><use href="#tildabite-mark"/></svg>
+    <div class="logo-text">
+      <div class="logo-name">Tilda<span>Bite</span></div>
+      <div class="logo-tag">Your City. Your Food.</div>
+    </div>
+  </a>
+  <div class="nav-right">
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme"><i class="ti ti-moon" id="theme-icon"></i></button>
+    <button class="nav-btn cart-btn" onclick="openCart()"><i class="ti ti-shopping-cart"></i> Cart <span class="cart-badge" id="cart-badge" style="display:none">0</span></button>
+    <button class="nav-btn primary" id="auth-nav-btn" onclick="handleAuthNavClick()"><i class="ti ti-user"></i> <span id="auth-nav-label">Sign in</span></button>
+  </div>
+</nav>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="bottom-nav-item active" onclick="showView('menu');setActive(this)"><i class="ti ti-home"></i>Menu</button>
+  <button class="bottom-nav-item" onclick="if(!isLoggedIn){requireAuth('orders');return;}renderOrders();showView('orders');setActive(this)"><i class="ti ti-package"></i>Orders</button>
+  <button class="bottom-nav-item" onclick="if(!isLoggedIn){requireAuth('profile');return;}showView('profile');setActive(this)"><i class="ti ti-user-circle"></i>Profile</button>
+</div>
+
+<!-- ============ MENU VIEW ============ -->
+<div class="view active" id="view-menu">
+  <div class="hero">
+    <div class="hero-logo">
+      <svg class="hero-logo-img" viewBox="0 0 100 100" role="img" aria-label="TildaBite"><use href="#tildabite-mark"/></svg>
+      <div class="hero-logo-text">
+        <div class="brand-name"><span class="tilda">Tilda</span><span class="bite">Bite</span></div>
+        <div class="brand-tag">Your City. Your Food.</div>
       </div>
     </div>
-    <div class="sidebar-nav">
-      <button class="nav-item active" onclick="showView('overview',this)"><i class="ti ti-layout-dashboard"></i>Overview</button>
-      <button class="nav-item" onclick="showView('orders',this)"><i class="ti ti-package"></i>Orders <span class="badge" id="pending-badge">0</span></button>
-      <button class="nav-item" onclick="showView('analytics',this)"><i class="ti ti-chart-bar"></i>Analytics</button>
-      <button class="nav-item" onclick="showView('customers',this)"><i class="ti ti-users"></i>Customers</button>
-      <button class="nav-item" onclick="showView('riders',this)"><i class="ti ti-motorbike"></i>Riders</button>
-      <button class="nav-item" onclick="showView('notifications',this)"><i class="ti ti-bell"></i>Notifications</button>
-      <button class="nav-item" onclick="showView('menu-mgmt',this)"><i class="ti ti-clipboard-list"></i>Menu</button>
-      <button class="nav-item" onclick="showView('settings',this)"><i class="ti ti-settings"></i>Settings</button>
-    </div>
-    <div class="sidebar-footer">
-      <button class="nav-item" onclick="toggleTheme()"><i class="ti ti-moon" id="theme-icon"></i>Toggle theme</button>
+    <h1>Hot food, <span>fast delivery</span> 🔥</h1>
+    <p>Authentic Indian flavours delivered to your door</p>
+    <div class="search-bar">
+      <input type="text" placeholder="Search biryani, burger, coffee…" id="search-input" oninput="filterMenu()">
+      <button><i class="ti ti-search"></i></button>
     </div>
   </div>
+  <div class="categories" id="categories">
+    <button class="cat-btn active" onclick="filterCat('all',this)">🍽️ All</button>
+    <button class="cat-btn" onclick="filterCat('biryani',this)">🍛 Biryani</button>
+    <button class="cat-btn" onclick="filterCat('chicken',this)">🍗 Chicken</button>
+    <button class="cat-btn" onclick="filterCat('veg',this)">🌿 Veg</button>
+    <button class="cat-btn" onclick="filterCat('snacks',this)">🍔 Snacks</button>
+    <button class="cat-btn" onclick="filterCat('drinks',this)">🥤 Drinks</button>
+  </div>
+  <!-- VEG / NON-VEG FILTER -->
+  <div class="diet-filter-bar">
+    <div class="diet-toggle-wrap">
+      <button class="diet-btn active-all" id="diet-all" onclick="setDiet('all')"><span class="dot" style="background:var(--accent);border-color:var(--accent)"></span>All</button>
+      <button class="diet-btn" id="diet-veg" onclick="setDiet('veg')"><span class="dot" style="background:#16A34A;border-color:#16A34A"></span>Pure Veg</button>
+      <button class="diet-btn" id="diet-nonveg" onclick="setDiet('nonveg')"><span class="dot" style="background:#DC2626;border-color:#DC2626"></span>Non-Veg</button>
+    </div>
+    <span class="diet-count-badge" id="diet-count-badge">16 items</span>
+  </div>
+  <div class="section-title" id="menu-section-title">All Items</div>
+  <!-- Skeleton loader shown while menu loads -->
+  <div class="skeleton-grid" id="skeleton-grid"></div>
+  <div class="menu-grid" id="menu-grid" style="display:none"></div>
+</div>
 
-  <div class="main">
-    <div class="topbar">
-      <div class="topbar-title" id="page-title">Overview</div>
-      <div class="topbar-right">
-        <button id="store-status-pill" onclick="quickToggleStore()" class="tb-btn" style="font-weight:700"><i class="ti ti-circle-filled" style="font-size:10px"></i> <span id="store-status-text">Loading...</span></button>
-        <button class="tb-btn" onclick="adminRefreshOrders()"><i class="ti ti-refresh" style="font-size:14px"></i> Refresh</button>
-        <button class="tb-btn accent"><i class="ti ti-user-circle" style="font-size:14px"></i> Admin</button>
-        <button class="tb-btn" onclick="adminSignOut()" style="border-color:var(--red);color:var(--red)"><i class="ti ti-logout" style="font-size:14px"></i> Sign out</button>
+<!-- ============ AUTH VIEW ============ -->
+<div class="view" id="view-auth">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <svg class="auth-logo-img" viewBox="0 0 100 100" role="img" aria-label="TildaBite"><use href="#tildabite-mark"/></svg>
+        <div class="auth-logo-name"><span class="t">Tilda</span><span class="b">Bite</span></div>
+      </div>
+      <h2 id="auth-title">Create account 🚀</h2>
+      <p id="auth-sub">Join TildaBite – your favourite food, delivered fast</p>
+
+      <div id="signup-fields">
+        <div class="form-group"><label>Email</label><input type="email" placeholder="you@example.com" id="auth-email"></div>
+        <div class="form-group"><label>Password <span style="font-size:11px;color:var(--text3)">(min. 6 characters)</span></label><input type="password" placeholder="••••••••" id="auth-pass"></div>
+        <div id="auth-name-group" class="form-group"><label>Full name</label><input type="text" placeholder="Rahul Sharma" id="auth-name"></div>
+        <div id="auth-phone-group" class="form-group"><label>Phone number</label><input type="tel" placeholder="+91 98765 43210" id="auth-phone"></div>
+        <div class="form-group" style="display:flex;align-items:flex-start;gap:9px;margin-top:2px">
+          <input type="checkbox" id="signup-privacy-check" onchange="toggleSignupSubmitState()" style="margin-top:3px;width:16px;height:16px;flex-shrink:0;cursor:pointer;accent-color:var(--accent)">
+          <label for="signup-privacy-check" style="font-size:12px;color:var(--text2);line-height:1.55;cursor:pointer">
+            I have read and agree to the <a href="#" onclick="event.preventDefault();showLegalPage('terms')" style="color:var(--accent);font-weight:700;text-decoration:underline">Terms &amp; Conditions</a> and the <a href="#" onclick="event.preventDefault();showLegalPage('privacy')" style="color:var(--accent);font-weight:700;text-decoration:underline">Privacy Policy</a>
+          </label>
+        </div>
+      </div>
+
+      <div id="login-fields" style="display:none">
+        <div class="form-group"><label>Email or Mobile number</label><input type="text" placeholder="you@example.com or 98765 43210" id="login-identifier"></div>
+        <div class="form-group"><label>Password</label><input type="password" placeholder="••••••••" id="login-pass" onkeydown="if(event.key==='Enter')handleAuth()"></div>
+      </div>
+
+      <button class="auth-submit" onclick="handleAuth()" id="auth-submit-btn">Create account</button>
+      <div class="auth-switch" id="auth-switch">Already have an account? <a onclick="toggleAuth()">Sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ORDERS VIEW ============ -->
+<div class="view" id="view-orders">
+  <div class="orders-container">
+    <div style="font-size:20px;font-weight:700;margin-bottom:6px">Your orders</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:20px">Track and reorder your past orders</div>
+    <div id="orders-list"></div>
+  </div>
+</div>
+
+<!-- ============ PROFILE VIEW ============ -->
+<div class="view" id="view-profile">
+  <div class="profile-container">
+    <div class="profile-header">
+      <div class="profile-avatar"><i class="ti ti-user"></i></div>
+      <div class="profile-name" id="profile-name-display">Guest</div>
+      <div class="profile-email" id="profile-email-display">Not signed in</div>
+    </div>
+    <div class="profile-section">
+      <div class="profile-item" onclick="showView('orders');setActive(document.querySelectorAll('.bottom-nav-item')[1])"><i class="ti ti-package"></i><span>My orders</span><i class="ti ti-chevron-right chevron"></i></div>
+      <div class="profile-item"><i class="ti ti-map-pin"></i><span>Saved addresses</span><i class="ti ti-chevron-right chevron"></i></div>
+      <div class="profile-item"><i class="ti ti-heart"></i><span>Favourites</span><i class="ti ti-chevron-right chevron"></i></div>
+      <div class="profile-item"><i class="ti ti-bell"></i><span>Notifications</span><i class="ti ti-chevron-right chevron"></i></div>
+    </div>
+    <div class="profile-section">
+      <div class="profile-item" onclick="showView('help')"><i class="ti ti-help-circle"></i><span>Help & support</span><i class="ti ti-chevron-right chevron"></i></div>
+      <div class="profile-item" onclick="showLegalPage('privacy')"><i class="ti ti-shield"></i><span>Privacy policy</span><i class="ti ti-chevron-right chevron"></i></div>
+      <div class="profile-item" onclick="showLegalPage('terms')"><i class="ti ti-file-text"></i><span>Terms & conditions</span><i class="ti ti-chevron-right chevron"></i></div>
+      <div class="profile-item" style="color:var(--red)" onclick="signOut()"><i class="ti ti-logout" style="color:var(--red)"></i><span>Sign out</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ HELP & SUPPORT VIEW ============ -->
+<div class="view" id="view-help">
+  <div class="orders-container">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+      <button onclick="showView('profile')" style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:20px;display:flex;padding:0;line-height:1"><i class="ti ti-arrow-left"></i></button>
+      <div style="font-size:20px;font-weight:700">Help & Support</div>
+    </div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:20px">Stuck with an order or have a question? Reach us directly below — we usually reply within a few hours.</div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div style="width:46px;height:46px;border-radius:50%;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="ti ti-mail" style="font-size:22px;color:var(--accent)"></i>
+        </div>
+        <div style="flex:1;min-width:150px">
+          <div style="font-weight:700;font-size:14px">Email us</div>
+          <div style="font-size:13px;color:var(--text2);word-break:break-all">sunny22101082@gmail.com</div>
+        </div>
+        <a href="mailto:sunny22101082@gmail.com?subject=TildaBite%20Support%20Request" style="background:var(--accent);color:#fff;padding:9px 16px;border-radius:20px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap">Send email</a>
+      </div>
+
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div style="width:46px;height:46px;border-radius:50%;background:rgba(37,211,102,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="ti ti-brand-whatsapp" style="font-size:22px;color:#25D366"></i>
+        </div>
+        <div style="flex:1;min-width:150px">
+          <div style="font-weight:700;font-size:14px">WhatsApp us</div>
+          <div style="font-size:13px;color:var(--text2)">+91 91833 35030</div>
+        </div>
+        <a href="https://wa.me/919183335030?text=Hi%2C%20I%20need%20help%20with%20my%20TildaBite%20order" target="_blank" rel="noopener" style="background:#25D366;color:#fff;padding:9px 16px;border-radius:20px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap">Chat now</a>
       </div>
     </div>
-    <div class="content">
 
-      <!-- OVERVIEW -->
-      <div class="view active" id="view-overview">
-        <div class="stat-grid">
-          <div class="stat-card s-orange"><div class="stat-label">Total orders today</div><div class="stat-val" id="ov-total">0</div><div class="stat-sub" id="ov-total-sub">No orders yet</div></div>
-          <div class="stat-card s-green"><div class="stat-label">Revenue today</div><div class="stat-val" id="ov-revenue">₹0</div><div class="stat-sub">—</div></div>
-          <div class="stat-card s-blue"><div class="stat-label">Active riders</div><div class="stat-val" id="ov-riders">0</div><div class="stat-sub">—</div></div>
-          <div class="stat-card s-amber"><div class="stat-label">Pending orders</div><div class="stat-val" id="ov-pending">0</div><div class="stat-sub">Need rider assignment</div></div>
+    <div style="margin-top:20px;background:var(--accent-bg);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:12px;color:var(--text2);text-align:center">
+      <i class="ti ti-clock" style="font-size:13px;vertical-align:-2px"></i>
+      Support hours: 10:00 AM – 11:00 PM, all days
+    </div>
+  </div>
+</div>
+
+<!-- ============ TERMS & PRIVACY POLICY VIEW ============ -->
+<div class="view" id="view-legal">
+  <div class="orders-container">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <button onclick="closeLegalPage()" style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:20px;display:flex;padding:0;line-height:1"><i class="ti ti-arrow-left"></i></button>
+      <div style="font-size:20px;font-weight:700" id="legal-title">Privacy Policy</div>
+    </div>
+    <div id="legal-content" style="font-size:13px;color:var(--text2);line-height:1.7"></div>
+  </div>
+</div>
+
+<!-- ============ CHECKOUT VIEW ============ -->
+<div class="view" id="view-checkout">
+  <div class="checkout-view">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <button onclick="showView('menu')" style="background:none;border:1px solid var(--border2);color:var(--text2);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center"><i class="ti ti-arrow-left"></i></button>
+      <div style="font-size:20px;font-weight:700">Checkout</div>
+    </div>
+    <div class="checkout-section">
+      <h3><i class="ti ti-map-pin"></i>Delivery address</h3>
+      <div id="saved-addresses-list"></div>
+      <div class="deliver-to-card" id="add-new-address-card" onclick="openLocationPicker()">
+        <div class="deliver-to-icon"><i class="ti ti-plus"></i></div>
+        <div class="deliver-to-text">
+          <strong>Add new address</strong>
+          <span>Pin a new delivery location on the map · 7km zone</span>
         </div>
-        <div class="section-head"><h2>Recent orders</h2><button class="filter-btn" onclick="showView('orders',document.querySelectorAll('.nav-item')[1])">View all</button></div>
-        <div class="orders-table">
-          <div class="table-head"><div>Order ID</div><div>Customer</div><div>Amount</div><div>Status</div><div>Rider</div><div>Action</div></div>
-          <div id="recent-orders-body"></div>
-        </div>
+        <i class="ti ti-chevron-right" style="color:var(--text3)"></i>
       </div>
-
-      <!-- ORDERS -->
-      <div class="view" id="view-orders">
-        <div class="filter-row" id="order-filters">
-          <button class="filter-btn active" onclick="filterOrders('all',this)">All orders</button>
-          <button class="filter-btn" onclick="filterOrders('pending',this)">Pending</button>
-          <button class="filter-btn" onclick="filterOrders('preparing',this)">Preparing</button>
-          <button class="filter-btn" onclick="filterOrders('otw',this)">Out for delivery</button>
-          <button class="filter-btn" onclick="filterOrders('delivered',this)">Delivered</button>
-          <button class="filter-btn" onclick="filterOrders('cancelled',this)">Cancelled</button>
-        </div>
-        <div class="filter-row" style="margin-top:8px;flex-wrap:wrap;gap:8px;align-items:center">
-          <input type="text" id="order-search" placeholder="Search order ID, name or phone..." oninput="renderAllOrders()" style="flex:1;min-width:200px;padding:8px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px">
-          <select id="order-date-filter" onchange="onDateFilterChange()" style="padding:8px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px">
-            <option value="all">All time</option>
-            <option value="today">Today</option>
-            <option value="yesterday">Yesterday</option>
-            <option value="week">This week</option>
-            <option value="month">This month</option>
-            <option value="custom">Custom range</option>
-          </select>
-          <input type="date" id="order-date-from" style="display:none;padding:7px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px" oninput="renderAllOrders()">
-          <input type="date" id="order-date-to" style="display:none;padding:7px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px" oninput="renderAllOrders()">
-          <select id="order-rider-filter" onchange="renderAllOrders()" style="padding:8px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px">
-            <option value="all">All riders</option>
-          </select>
-          <button class="tb-btn" onclick="openExportModal()"><i class="ti ti-download" style="font-size:14px"></i> Export CSV</button>
-        </div>
-        <div class="orders-table" style="margin-top:12px">
-          <div class="table-head"><div>Order ID</div><div>Customer</div><div>Amount</div><div>Status</div><div>Rider</div><div>Action</div></div>
-          <div id="all-orders-body"></div>
-        </div>
-        <div class="modal-bg hidden" id="assign-modal">
-          <div class="modal">
-            <h3>Assign rider</h3>
-            <p id="modal-order-label">Assigning for TB1001</p>
-            <div class="modal-field"><label>Select rider</label>
-              <select id="rider-select"><option value="">Choose a rider...</option></select>
-            </div>
-            <div class="modal-actions">
-              <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-              <button class="btn-confirm" onclick="confirmAssign()">Assign & generate OTP</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- ORDER DETAILS / PRINT MODAL -->
-        <div class="modal-bg hidden" id="order-details-modal">
-          <div class="modal" style="max-width:420px">
-            <h3>Order details</h3>
-            <div id="order-details-body" style="font-size:13px;color:var(--text);margin:14px 0;max-height:60vh;overflow-y:auto"></div>
-            <div class="modal-actions">
-              <button class="btn-cancel" onclick="closeOrderDetails()">Close</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- EXPORT CSV MODAL -->
-        <div class="modal-bg hidden" id="export-modal">
-          <div class="modal">
-            <h3>Export orders as CSV</h3>
-            <div class="modal-field"><label>From date</label>
-              <input type="date" id="export-from" style="width:100%;padding:8px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px">
-            </div>
-            <div class="modal-field"><label>To date</label>
-              <input type="date" id="export-to" style="width:100%;padding:8px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px">
-            </div>
-            <div class="modal-actions">
-              <button class="btn-cancel" onclick="closeExportModal()">Cancel</button>
-              <button class="btn-confirm" onclick="exportOrdersCSV()"><i class="ti ti-download" style="font-size:13px"></i> Download CSV</button>
-            </div>
-          </div>
-        </div>
+      <textarea class="address-input" id="delivery-address" style="display:none"></textarea>
+    </div>
+    <div class="checkout-section" id="checkout-items-section">
+      <h3><i class="ti ti-receipt"></i>Order summary</h3>
+      <div id="checkout-items-list"></div>
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+        <div class="cart-total-row"><span>Subtotal</span><span id="co-subtotal">₹0</span></div>
+        <div class="cart-total-row"><span>Delivery fee</span><span style="color:var(--green)">FREE</span></div>
+        <div class="cart-total-row"><span>Taxes (5%)</span><span id="co-tax">₹0</span></div>
+        <div class="cart-total-row grand"><span>Total</span><span id="co-total">₹0</span></div>
       </div>
+    </div>
+    <div class="checkout-section">
+      <h3><i class="ti ti-credit-card"></i>Payment method</h3>
+      <label class="payment-opt selected" onclick="selectPay(this)">
+        <input type="radio" name="pay" checked> <div class="payment-label"><strong>Razorpay UPI</strong><span>Pay via UPI, NetBanking, Cards</span></div> <span style="font-size:20px">💳</span>
+      </label>
+      <p style="font-size:11.5px;color:var(--text3);margin-top:8px"><i class="ti ti-info-circle" style="margin-right:4px"></i>We currently accept online payments only — no Cash on Delivery.</p>
+    </div>
+    <button class="pay-btn" id="place-order-btn" onclick="placeOrder()"><i class="ti ti-lock"></i> Place order securely</button>
+  </div>
+</div>
 
-      <!-- RIDERS -->
-      <div class="view" id="view-riders">
-        <div class="riders-grid" id="riders-grid"></div>
-      </div>
+<!-- LOCATION PICKER MODAL -->
+<div class="loc-modal-overlay" id="loc-modal-overlay">
+  <div class="loc-modal">
+    <h3>📍 Set delivery location</h3>
+    <p class="loc-sub">Drag the pin or tap the map to set your exact spot · We deliver within a 7 km circle (shown in orange) around our kitchen</p>
+    <div id="loc-status-box" style="display:none"></div>
+    <div id="loc-map"></div>
+    <div class="loc-manual-fields">
+      <label class="loc-field-label" for="loc-address-input">Address <span style="color:#e53935">*</span></label>
+      <textarea id="loc-address-input" class="address-input" placeholder="House/Flat no., Street, Area, City…" style="min-height:56px"></textarea>
+      <label class="loc-field-label" for="loc-landmark-input">Nearby shop / landmark <span style="color:#e53935">*</span></label>
+      <input type="text" id="loc-landmark-input" class="address-input" placeholder="e.g. Near Raj Kirana Store" style="min-height:auto;padding:10px 14px">
+    </div>
+    <div class="loc-btn-row">
+      <button type="button" id="loc-locate-btn" onclick="locLocateMe()">🎯 Use my location</button>
+      <button type="button" id="loc-confirm-btn" onclick="saveDeliveryAddress()">💾 Save delivery address</button>
+    </div>
+    <button type="button" id="loc-cancel-btn" onclick="closeLocationPicker()">Cancel</button>
+  </div>
+</div>
 
-      <!-- ANALYTICS -->
-      <div class="view" id="view-analytics">
-        <div class="filter-row" id="analytics-range">
-          <button class="filter-btn active" onclick="setAnalyticsRange('24h',this)">24 Hours</button>
-          <button class="filter-btn" onclick="setAnalyticsRange('week',this)">Week</button>
-          <button class="filter-btn" onclick="setAnalyticsRange('month',this)">Month</button>
-          <button class="filter-btn" onclick="setAnalyticsRange('year',this)">Year</button>
-        </div>
-        <div class="stat-grid" style="margin-top:14px">
-          <div class="stat-card s-orange"><div class="stat-label">Orders</div><div class="stat-val" id="an-orders">0</div></div>
-          <div class="stat-card s-green"><div class="stat-label">Revenue</div><div class="stat-val" id="an-revenue">₹0</div></div>
-          <div class="stat-card s-blue"><div class="stat-label">Avg order value</div><div class="stat-val" id="an-aov">₹0</div></div>
-        </div>
-        <div class="section-head" style="margin-top:20px"><h2>Orders trend</h2></div>
-        <div id="an-trend-chart" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;min-height:180px"></div>
-        <div class="section-head" style="margin-top:20px"><h2>Peak order hours</h2></div>
-        <div id="an-hours-chart" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;min-height:140px"></div>
-        <div class="section-head" style="margin-top:20px"><h2>Best-selling items</h2></div>
-        <div id="an-top-items" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:8px 16px"></div>
-      </div>
-
-      <!-- CUSTOMERS -->
-      <div class="view" id="view-customers">
-        <div class="filter-row" style="margin-bottom:12px">
-          <input type="text" id="customer-search" placeholder="Search by name, email or phone..." oninput="renderCustomers()" style="flex:1;padding:8px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px">
-        </div>
-        <div class="orders-table">
-          <div class="table-head" style="grid-template-columns:1fr 1fr 90px 90px 100px"><div>Customer</div><div>Contact</div><div>Orders</div><div>Spent</div><div>Tag</div></div>
-          <div id="customers-body" style="display:grid;grid-template-columns:1fr"></div>
-        </div>
-        <div class="modal-bg hidden" id="customer-history-modal">
-          <div class="modal" style="max-width:460px">
-            <h3>Order history</h3>
-            <div id="customer-history-body" style="font-size:13px;margin:14px 0;max-height:60vh;overflow-y:auto"></div>
-            <div class="modal-actions">
-              <button class="btn-cancel" onclick="closeCustomerHistory()">Close</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SETTINGS -->
-      <div class="view" id="view-settings">
-        <div class="section-head"><h2>Store status</h2></div>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;max-width:520px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-            <div>
-              <div style="font-weight:700;font-size:14px">Restaurant Open</div>
-              <div style="font-size:12px;color:var(--text3);margin-top:2px">Turn off to stop new orders instantly</div>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="settings-is-open" onchange="onStoreToggleChange()">
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="modal-field"><label>Opening time</label>
-            <input type="time" id="settings-opening-time" style="width:100%;padding:8px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px">
-          </div>
-          <div class="modal-field"><label>Closing time</label>
-            <input type="time" id="settings-closing-time" style="width:100%;padding:8px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px">
-          </div>
-          <div class="modal-field"><label>Restaurant phone (for "Call us" button)</label>
-            <input type="text" id="settings-phone" placeholder="98765 43210" style="width:100%;padding:8px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px">
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;margin:14px 0">
-            <input type="checkbox" id="settings-auto-reopen" style="width:16px;height:16px">
-            <label for="settings-auto-reopen" style="font-size:13px">Auto re-open once opening time is reached</label>
-          </div>
-          <button class="btn-confirm" style="width:100%;justify-content:center" onclick="saveStoreSettings()"><i class="ti ti-device-floppy" style="font-size:13px"></i> Save settings</button>
-        </div>
-      </div>
-
-      <!-- STORE OPEN/CLOSE CONFIRMATION -->
-      <div class="modal-bg hidden" id="store-confirm-modal">
-        <div class="modal" style="max-width:380px;text-align:center">
-          <div id="store-confirm-icon" style="font-size:40px;margin-bottom:8px">🔔</div>
-          <h3 id="store-confirm-title" style="text-align:center;font-size:16px">Close the restaurant?</h3>
-          <p id="store-confirm-body" style="text-align:center">Customers won't be able to place new orders. They'll see a "We'll be available soon" screen until you reopen.</p>
-          <div class="modal-actions" style="justify-content:center">
-            <button class="btn-cancel" onclick="cancelStoreToggle()">Cancel</button>
-            <button class="btn-confirm" id="store-confirm-btn" onclick="confirmStoreToggle()">Yes, close now</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- NOTIFICATIONS -->
-      <div class="view" id="view-notifications">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
-          <div class="notif-form">
-            <h3><i class="ti ti-send" style="color:var(--accent);margin-right:6px"></i>Send notification</h3>
-            <div class="nf-field"><label>Target audience</label>
-              <select id="notif-target">
-                <option>All customers</option><option>Specific order customer</option>
-                <option>All riders</option><option>Customers with pending orders</option>
-              </select>
-            </div>
-            <div class="nf-field"><label>Notification type</label>
-              <select id="notif-type">
-                <option>Order update</option><option>Promotional offer</option>
-                <option>OTP delivery</option><option>System alert</option>
-              </select>
-            </div>
-            <div class="nf-field"><label>Title</label><input type="text" id="notif-title" placeholder="Your order is on the way!"></div>
-            <div class="nf-field"><label>Message</label><textarea id="notif-msg" placeholder="Enter notification message..."></textarea></div>
-            <button class="send-btn" onclick="sendNotification()"><i class="ti ti-send" style="font-size:14px"></i>Send notification</button>
-          </div>
-          <div>
-            <div class="section-head" style="margin-bottom:12px"><h2>Notification log</h2></div>
-            <div class="notif-log" id="notif-log"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- MENU MGMT -->
-      <div class="view" id="view-menu-mgmt">
-        <div class="stat-grid" style="margin-bottom:16px">
-          <div class="stat-card s-orange"><div class="stat-label">Total items</div><div class="stat-val" id="mm-total">0</div><div class="stat-sub">In menu</div></div>
-          <div class="stat-card s-green"><div class="stat-label">In stock</div><div class="stat-val" id="mm-instock">0</div><div class="stat-sub">Available now</div></div>
-          <div class="stat-card s-amber"><div class="stat-label">Few left</div><div class="stat-val" id="mm-fewleft">0</div><div class="stat-sub">≤ 5 units</div></div>
-          <div class="stat-card s-blue"><div class="stat-label">Out of stock</div><div class="stat-val" id="mm-oos">0</div><div class="stat-sub">Hidden from menu</div></div>
-        </div>
-        <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden">
-          <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-            <span style="font-size:14px;font-weight:800">TildaBite Menu Items</span>
-            <div style="display:flex;gap:8px;align-items:center">
-              <input type="text" id="mm-search" placeholder="Search items…" oninput="renderMenuMgmt()" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:6px 12px;border-radius:8px;font-size:12px;outline:none;width:180px">
-              <button class="tb-btn accent" onclick="openMenuEditor(null)"><i class="ti ti-plus" style="font-size:13px"></i> Add item</button>
-            </div>
-          </div>
-          <div id="menu-items-list"></div>
-        </div>
-
-        <!-- MENU EDIT MODAL -->
-        <div class="modal-bg hidden" id="menu-modal">
-          <div class="modal" style="max-width:460px;max-height:90vh;overflow-y:auto">
-            <h3 id="menu-modal-title">Add menu item</h3>
-            <p>Changes reflect instantly on the customer ordering app.</p>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-              <div class="modal-field" style="grid-column:1/-1"><label>Item name *</label><input type="text" id="mm-name" placeholder="Chicken Biryani"></div>
-              <div class="modal-field" style="grid-column:1/-1"><label>Description</label><input type="text" id="mm-desc" placeholder="Slow-cooked basmati with secret spices"></div>
-              <div class="modal-field"><label>Price (₹) *</label><input type="number" id="mm-price" placeholder="199" min="0"></div>
-              <div class="modal-field"><label>Category *</label>
-                <select id="mm-cat">
-                  <option value="biryani">Biryani</option><option value="chicken">Chicken</option>
-                  <option value="veg">Veg</option><option value="snacks">Snacks</option>
-                  <option value="drinks">Drinks</option>
-                </select>
-              </div>
-              <div class="modal-field"><label>Emoji</label><input type="text" id="mm-emoji" placeholder="🍛" maxlength="4"></div>
-              <div class="modal-field"><label>Diet</label>
-                <select id="mm-veg"><option value="true">Veg 🌿</option><option value="false">Non-Veg 🍗</option></select>
-              </div>
-              <div class="modal-field" style="grid-column:1/-1"><label>Image URL (optional)</label><input type="text" id="mm-image" placeholder="https://… or leave blank to use emoji"></div>
-              <div class="modal-field"><label>Stock left (blank = unlimited)</label><input type="number" id="mm-stock" placeholder="e.g. 20" min="0"></div>
-              <div class="modal-field"><label>Status</label>
-                <select id="mm-oos-toggle"><option value="false">Available</option><option value="true">Out of stock</option></select>
-              </div>
-              <div class="modal-field" style="grid-column:1/-1">
-                <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
-                  <input type="checkbox" id="mm-bestseller" style="width:auto;accent-color:var(--accent)">
-                  <span>⭐ Mark as Best Seller (shown with badge to customers)</span>
-                </label>
-              </div>
-            </div>
-            <div class="modal-actions" style="margin-top:8px">
-              <button class="btn-cancel" id="mm-delete-btn" onclick="deleteMenuItem()" style="margin-right:auto;color:var(--red);border-color:var(--red);display:none">Delete</button>
-              <button class="btn-cancel" onclick="closeMenuModal()">Cancel</button>
-              <button class="btn-confirm" onclick="saveMenuItem()">Save item</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
+<!-- CART DRAWER -->
+<div class="cart-overlay" id="cart-overlay" onclick="closeCartIfOutside(event)">
+  <div class="cart-drawer">
+    <div class="cart-header">
+      <h2><i class="ti ti-shopping-cart" style="color:var(--accent);margin-right:8px"></i>Your cart</h2>
+      <button class="close-btn" onclick="closeCart()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="cart-items" id="cart-items-list"></div>
+    <div class="cart-footer" id="cart-footer" style="display:none">
+      <div class="delivery-info"><i class="ti ti-truck"></i> Free delivery · Est. 30-40 min</div>
+      <div class="cart-total-row"><span style="color:var(--text2)">Subtotal</span><span id="cart-subtotal">₹0</span></div>
+      <div class="cart-total-row"><span style="color:var(--text2)">Taxes (5%)</span><span id="cart-tax">₹0</span></div>
+      <div class="cart-total-row grand"><span>Total</span><span id="cart-total">₹0</span></div>
+      <button class="checkout-btn" onclick="goCheckout()">Proceed to checkout →</button>
     </div>
   </div>
 </div>
 
 <script>
-// ─── SUPABASE CONFIG ─────────────────────────────────────────
-const SUPABASE_URL = 'https://loyfgezloleupazlgnmw.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_vnyJlBniwJy0PnLbEtjDXA_v69j1Spu';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// ─── DELIVERY LOCATION PICKER (Leaflet) ───────────────────────
+let deliveryLat = null, deliveryLng = null;
+let locMap = null, locMarker = null, locRadiusCircle = null;
+// TildaBite kitchen location — delivery radius is measured from here.
+const STORE_LAT = 21.544869, STORE_LNG = 81.801203;
+const MAX_DELIVERY_RADIUS_KM = 7;
+const locDefaultLat = STORE_LAT, locDefaultLng = STORE_LNG;
 
-let adminSessionToken = null;
-function esc(v){ if(v===null||v===undefined) return ''; return String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-async function adminLogin(){
-  const id   = document.getElementById('admin-id-input').value.trim().toLowerCase();
-  const pass = document.getElementById('admin-pass-input').value;
-  const errEl = document.getElementById('admin-login-error');
-  if(!id || !pass){ errEl.textContent='Please enter both Admin ID and password.'; errEl.style.display='block'; return; }
-  const { data: token, error } = await sb.rpc('admin_login', { p_email: id, p_password: pass });
-  if(error || !token){
-    errEl.textContent = (error && error.message.includes('TOO_MANY_ATTEMPTS')) ? 'Too many failed attempts. Please try again in 7 minutes.' : 'Invalid Admin ID or password. Access denied.';
-    errEl.style.display='block';
-    document.getElementById('admin-pass-input').value=''; return;
-  }
-  adminSessionToken = token;
-  errEl.style.display='none';
-  document.getElementById('admin-login-screen').style.display='none';
-  document.getElementById('admin-shell').style.display='flex';
-  adminRefreshOrders(); adminLoadRiders(); adminLoadNotifications(); renderMenuMgmt();
-  loadStoreSettings();
-  adminSubscribeRealtime();
-  toast('Welcome back, Admin! 👋');
+// Haversine distance in km between two lat/lng points
+function distanceKm(lat1, lng1, lat2, lng2){
+  const R = 6371;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLng = (lng2-lng1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-function adminSignOut(){
-  if(adminSessionToken){ sb.rpc('logout', { p_token: adminSessionToken }); }
-  adminSessionToken = null;
-  document.getElementById('admin-shell').style.display='none';
-  document.getElementById('admin-login-screen').style.display='flex';
-  document.getElementById('admin-id-input').value='';
-  document.getElementById('admin-pass-input').value='';
-  toast('Signed out');
-}
-
-let RIDERS=[];
-let ORDERS=[]; let currentFilter='all'; let assigningOrder=null; let notifLog=[]; let isDark=false;
-let STORE_SETTINGS = { is_open:true, opening_time:'10:00', closing_time:'23:00', auto_reopen:true, phone:'' };
-
-async function loadStoreSettings(){
-  const { data, error } = await sb.from('store_settings').select('*').eq('id',1).maybeSingle();
-  if(error || !data){ console.error(error); return; }
-  STORE_SETTINGS = data;
-  document.getElementById('settings-is-open').checked = data.is_open;
-  document.getElementById('settings-opening-time').value = data.opening_time;
-  document.getElementById('settings-closing-time').value = data.closing_time;
-  document.getElementById('settings-phone').value = data.phone || '';
-  document.getElementById('settings-auto-reopen').checked = data.auto_reopen;
-  updateStoreStatusPill();
-}
-function updateStoreStatusPill(){
-  const pill = document.getElementById('store-status-pill');
-  const txt = document.getElementById('store-status-text');
-  if(STORE_SETTINGS.is_open){
-    txt.textContent = 'Open';
-    pill.style.color = 'var(--green)'; pill.style.borderColor = 'var(--gborder)';
+function openLocationPicker(){
+  document.getElementById('loc-modal-overlay').classList.add('open');
+  document.getElementById('loc-address-input').value = '';
+  document.getElementById('loc-landmark-input').value = '';
+  hideLocStatus();
+  if(!locMap){
+    locMap = L.map('loc-map', { attributionControl: false }).setView([locDefaultLat, locDefaultLng], 13);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19
+    }).addTo(locMap);
+    locRadiusCircle = L.circle([STORE_LAT, STORE_LNG], {
+      radius: MAX_DELIVERY_RADIUS_KM * 1000, color: '#ff5722', weight: 2, fillColor: '#ff5722', fillOpacity: 0.06
+    }).addTo(locMap);
+    L.marker([STORE_LAT, STORE_LNG], {
+      icon: L.divIcon({ html: '🏠', className: '', iconSize: [24,24] })
+    }).addTo(locMap).bindTooltip('TildaBite kitchen', { permanent: false });
+    locMarker = L.marker([locDefaultLat, locDefaultLng], { draggable: true }).addTo(locMap);
+    locMarker.on('dragend', function(){
+      const p = locMarker.getLatLng();
+      updateLocCoords(p.lat, p.lng);
+    });
+    locMap.on('click', function(e){
+      locMarker.setLatLng(e.latlng);
+      updateLocCoords(e.latlng.lat, e.latlng.lng);
+    });
+    setTimeout(()=>locMap.invalidateSize(), 200);
+    locLocateMe();
   } else {
-    txt.textContent = 'Closed';
-    pill.style.color = 'var(--red)'; pill.style.borderColor = 'var(--rborder)';
+    setTimeout(()=>locMap.invalidateSize(), 100);
   }
 }
-let _storeConfirmCheckbox = null; // set when the confirm was triggered from the Settings switch (so we can revert it on Cancel)
-let _pendingStoreState = null;
 
-function quickToggleStore(){
-  requestStoreToggle(!STORE_SETTINGS.is_open, null);
+function closeLocationPicker(){
+  document.getElementById('loc-modal-overlay').classList.remove('open');
 }
-function onStoreToggleChange(){
-  const cb = document.getElementById('settings-is-open');
-  requestStoreToggle(cb.checked, cb);
+
+function updateLocCoords(lat, lng){
+  // Just remember the pinned point — no auto-filled address/landmark text.
+  pickedLat = lat; pickedLng = lng;
+  hideLocStatus();
 }
-function requestStoreToggle(newState, checkboxEl){
-  _storeConfirmCheckbox = checkboxEl;
-  _pendingStoreState = newState;
-  document.getElementById('store-confirm-icon').textContent = newState ? '✅' : '🌙';
-  document.getElementById('store-confirm-title').textContent = newState ? 'Open the restaurant?' : 'Close the restaurant?';
-  document.getElementById('store-confirm-body').textContent = newState
-    ? 'Customers will immediately be able to browse and place new orders again.'
-    : 'Customers won\u2019t be able to place new orders. They\u2019ll see a "We\u2019ll be available soon" screen until you reopen.';
-  const btn = document.getElementById('store-confirm-btn');
-  btn.textContent = newState ? 'Yes, open now' : 'Yes, close now';
-  btn.style.background = newState ? 'var(--accent)' : 'var(--red)';
-  document.getElementById('store-confirm-modal').classList.remove('hidden');
+
+function setLocStatus(text){
+  const el = document.getElementById('loc-status-box');
+  el.textContent = text;
+  el.style.display = 'flex';
 }
-function cancelStoreToggle(){
-  document.getElementById('store-confirm-modal').classList.add('hidden');
-  if(_storeConfirmCheckbox){ _storeConfirmCheckbox.checked = STORE_SETTINGS.is_open; }
-  updateStoreStatusPill();
-  _storeConfirmCheckbox = null; _pendingStoreState = null;
+function hideLocStatus(){
+  document.getElementById('loc-status-box').style.display = 'none';
 }
-async function confirmStoreToggle(){
-  const newState = _pendingStoreState;
-  const { error } = await sb.rpc('admin_update_store_settings', {
-    p_token: adminSessionToken,
-    p_is_open: newState,
-    p_opening_time: STORE_SETTINGS.opening_time || '10:00',
-    p_closing_time: STORE_SETTINGS.closing_time || '23:00',
-    p_phone: STORE_SETTINGS.phone || '',
-    p_auto_reopen: !!STORE_SETTINGS.auto_reopen
-  });
-  document.getElementById('store-confirm-modal').classList.add('hidden');
-  if(error){
-    toast('❌ '+error.message);
-    if(_storeConfirmCheckbox){ _storeConfirmCheckbox.checked = STORE_SETTINGS.is_open; }
-    updateStoreStatusPill();
-    _storeConfirmCheckbox = null; _pendingStoreState = null;
+
+let pickedLat = locDefaultLat, pickedLng = locDefaultLng;
+
+function locLocateMe(){
+  if(!navigator.geolocation){ setLocStatus('⚠️ Geolocation not supported, set pin manually'); return; }
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      const { latitude, longitude } = pos.coords;
+      locMap.setView([latitude, longitude], 15);
+      locMarker.setLatLng([latitude, longitude]);
+      updateLocCoords(latitude, longitude);
+    },
+    function(){ setLocStatus('⚠️ Location access denied — please drag pin manually'); },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+function escapeHtml(str){
+  return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ─── SAVED DELIVERY ADDRESSES (persisted per customer in Supabase) ──
+let savedAddresses = [];
+let selectedAddressId = null;
+
+async function loadSavedAddresses(){
+  if(!isLoggedIn || !loggedInUser.id) { savedAddresses = []; renderSavedAddresses(); return; }
+  const { data, error } = await sb.from('customer_addresses')
+    .select('*').eq('customer_id', loggedInUser.id).order('created_at', { ascending: true });
+  if(error){ console.error('loadSavedAddresses failed:', error); return; }
+  savedAddresses = data || [];
+  if(!selectedAddressId && savedAddresses.length) selectedAddressId = savedAddresses[savedAddresses.length - 1].id;
+  renderSavedAddresses();
+}
+
+function renderSavedAddresses(){
+  const list = document.getElementById('saved-addresses-list');
+  if(!list) return;
+  if(!savedAddresses.length){ list.innerHTML = ''; return; }
+  list.innerHTML = savedAddresses.map(a => `
+    <div class="deliver-to-card ${a.id === selectedAddressId ? 'selected filled' : ''}" style="margin-bottom:10px" onclick="selectSavedAddress('${a.id}')">
+      <div class="deliver-to-icon ${a.id === selectedAddressId ? 'confirmed' : ''}"><i class="ti ${a.id === selectedAddressId ? 'ti-map-pin-check' : 'ti-map-pin'}"></i></div>
+      <div class="deliver-to-text">
+        <strong>${escapeHtml(a.address)}</strong>
+        <span>Near ${escapeHtml(a.landmark)}</span>
+      </div>
+      ${a.id === selectedAddressId ? '<i class="ti ti-circle-check deliver-to-check"></i>' : ''}
+    </div>
+  `).join('');
+}
+
+function selectSavedAddress(id){
+  const a = savedAddresses.find(x => x.id === id);
+  if(!a) return;
+  selectedAddressId = id;
+  deliveryLat = a.lat; deliveryLng = a.lng;
+  document.getElementById('delivery-address').value = `${a.address} — Near ${a.landmark}`;
+  renderSavedAddresses();
+}
+
+async function saveDeliveryAddress(){
+  const dist = distanceKm(STORE_LAT, STORE_LNG, pickedLat, pickedLng);
+  if(dist > MAX_DELIVERY_RADIUS_KM){
+    setLocStatus(`🚫 Sorry, this spot is ${dist.toFixed(1)} km away — we deliver only within ${MAX_DELIVERY_RADIUS_KM} km of our kitchen`);
+    showToast(`❌ Out of delivery range (${dist.toFixed(1)} km away, max ${MAX_DELIVERY_RADIUS_KM} km)`);
     return;
   }
-  STORE_SETTINGS.is_open = newState;
-  document.getElementById('settings-is-open').checked = newState;
-  updateStoreStatusPill();
-  toast(newState ? 'Store marked Open ✓ — now visible to customers' : 'Store marked Closed — customers will see "We\u2019ll be available soon"');
-  _storeConfirmCheckbox = null; _pendingStoreState = null;
-}
-async function saveStoreSettings(){
-  const payload = {
-    is_open: document.getElementById('settings-is-open').checked,
-    opening_time: document.getElementById('settings-opening-time').value || '10:00',
-    closing_time: document.getElementById('settings-closing-time').value || '23:00',
-    phone: document.getElementById('settings-phone').value.trim(),
-    auto_reopen: document.getElementById('settings-auto-reopen').checked
-  };
-  const { error } = await sb.rpc('admin_update_store_settings', {
-    p_token: adminSessionToken,
-    p_is_open: payload.is_open,
-    p_opening_time: payload.opening_time,
-    p_closing_time: payload.closing_time,
-    p_phone: payload.phone,
-    p_auto_reopen: payload.auto_reopen
-  });
-  if(error){ toast('❌ '+error.message); return; }
-  STORE_SETTINGS = { ...STORE_SETTINGS, ...payload };
-  updateStoreStatusPill();
-  toast('Settings saved ✓ — live on customer app');
-}
-
-async function adminLoadRiders(){
-  const { data, error } = await sb.rpc('admin_list_riders', { p_token: adminSessionToken });
-  if(error){ console.error(error); return; }
-  RIDERS = data.map(r => ({
-    id: r.id, name: r.name, phone: r.phone, rating: r.rating,
-    deliveries: r.deliveries, orders: 0
-  }));
-  recomputeRiderOrderCounts();
-  renderRiders();
-  const selEl = document.getElementById('order-rider-filter');
-  if(selEl) selEl.dataset.filled = '0';
-  populateRiderFilterOptions();
-}
-
-function recomputeRiderOrderCounts(){
-  RIDERS.forEach(r=>{ r.orders = ORDERS.filter(o=>o.rider_id===r.id && o.status==='otw').length; });
-}
-
-async function adminRefreshOrders(){
-  const { data, error } = await sb.from('orders').select('*').order('created_at', { ascending: false });
-  if(error){ console.error(error); return; }
-  ORDERS = data.map(o=>({
-    id:o.id, customer:o.customer_name, phone:o.customer_phone||'—',
-    time: new Date(o.created_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),
-    date: new Date(o.created_at).toLocaleDateString('en-IN'),
-    created_at: o.created_at,
-    amount:o.total, subtotal:o.subtotal, tax:o.tax, status:o.status, rider:o.rider_name||null, rider_id:o.rider_id||null,
-    otp:o.otp||null, address:o.address||'—', lat:o.lat||null, lng:o.lng||null, items:(o.items||[]).map(i=>({name:i.name, qty:i.qty, price:i.price}))
-  }));
-  recomputeRiderOrderCounts();
-  renderAllOrders();renderRecentOrders();updateOverviewStats();renderRiders();
-  if(document.getElementById('view-menu-mgmt')?.classList.contains('active')) renderMenuMgmt();
-  if(document.getElementById('view-analytics')?.classList.contains('active')) renderAnalytics();
-}
-
-// Realtime: orders & riders update instantly without polling
-function adminSubscribeRealtime(){
-  sb.channel('admin-orders')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => adminRefreshOrders())
-    .subscribe();
-  sb.channel('admin-riders')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'riders' }, () => adminLoadRiders())
-    .subscribe();
-  sb.channel('admin-menu')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'menu_items' }, () => renderMenuMgmt())
-    .subscribe();
-  sb.channel('admin-store-settings')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'store_settings' }, () => loadStoreSettings())
-    .subscribe();
-}
-
-function statusBadge(s){
-  const map={pending:'<span class="status-badge s-pending"><i class="ti ti-clock" style="font-size:10px"></i>Pending</span>',preparing:'<span class="status-badge s-pending"><i class="ti ti-chef-hat" style="font-size:10px"></i>Preparing</span>',otw:'<span class="status-badge s-otw"><i class="ti ti-motorbike" style="font-size:10px"></i>Out for delivery</span>',delivered:'<span class="status-badge s-delivered"><i class="ti ti-check" style="font-size:10px"></i>Delivered</span>',cancelled:'<span class="status-badge s-cancelled">Cancelled</span>'};
-  return map[s]||s;
-}
-function actionCell(o){
-  if(o.status==='pending')return '<button class="assign-btn" onclick="openAssign(\''+o.id+'\')"><i class="ti ti-user-plus" style="font-size:12px"></i> Assign rider</button>';
-  if(o.status==='otw')return '<span class="assigned-pill"><i class="ti ti-circle-check" style="font-size:12px"></i>'+o.rider+'</span>';
-  return '<span style="font-size:11px;color:var(--text3)">Completed</span>';
-}
-function renderOrderRows(orders,targetId){
-  document.getElementById(targetId).innerHTML=orders.map(o=>'<div class="table-row" id="row-'+o.id+'"><div class="table-cell order-id-cell">'+o.id+'</div><div class="table-cell" style="overflow:hidden"><div style="font-weight:600;font-size:13px">'+esc(o.customer)+(o.lat&&o.lng?' <i class="ti ti-map-pin-check" style="font-size:12px;color:var(--green)" title="Precise location pinned"></i>':'')+'</div><div style="font-size:11px;color:var(--text3)">'+o.time+'</div></div><div class="table-cell">₹'+o.amount+'</div><div class="table-cell">'+statusBadge(o.status)+'</div><div class="table-cell" style="font-size:12px;color:var(--text2)">'+(o.rider||'—')+'</div><div class="table-cell" style="display:flex;gap:6px;flex-wrap:wrap;overflow:visible;white-space:normal;text-overflow:clip"><button class="tb-btn" style="padding:4px 8px;font-size:11px;white-space:nowrap" onclick="openOrderDetails(\''+o.id+'\')"><i class="ti ti-receipt" style="font-size:12px"></i> View</button> <button class="tb-btn" style="padding:4px 8px;font-size:11px;white-space:nowrap" onclick="printOrderInvoice(\''+o.id+'\')"><i class="ti ti-printer" style="font-size:12px"></i> Print</button></div></div>').join('');
-}
-function renderRecentOrders(){renderOrderRows(ORDERS.slice(0,5),'recent-orders-body');}
-function passesDateFilter(o){
-  const mode = document.getElementById('order-date-filter')?.value || 'all';
-  if(mode === 'all') return true;
-  const d = new Date(o.date.split('/').reverse().join('-')); // date is en-IN dd/mm/yyyy
-  const now = new Date(); now.setHours(0,0,0,0);
-  if(mode === 'today'){ return d.toDateString() === now.toDateString(); }
-  if(mode === 'yesterday'){ const y=new Date(now); y.setDate(y.getDate()-1); return d.toDateString()===y.toDateString(); }
-  if(mode === 'week'){ const w=new Date(now); w.setDate(w.getDate()-7); return d>=w; }
-  if(mode === 'month'){ return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear(); }
-  if(mode === 'custom'){
-    const from = document.getElementById('order-date-from').value;
-    const to = document.getElementById('order-date-to').value;
-    if(from && d < new Date(from)) return false;
-    if(to && d > new Date(to+'T23:59:59')) return false;
-    return true;
+  const addressText = document.getElementById('loc-address-input').value.trim();
+  const landmarkText = document.getElementById('loc-landmark-input').value.trim();
+  if(!addressText || !landmarkText){
+    setLocStatus('⚠️ Please fill both address and nearby landmark before saving');
+    return;
   }
-  return true;
+  if(!isLoggedIn || !loggedInUser.id){
+    showToast('Please sign in to save an address 🔑');
+    return;
+  }
+  const { data, error } = await sb.from('customer_addresses').insert({
+    customer_id: loggedInUser.id, address: addressText, landmark: landmarkText,
+    lat: pickedLat, lng: pickedLng
+  }).select().maybeSingle();
+  if(error){ showToast('❌ Could not save address, please try again'); console.error(error); return; }
+  savedAddresses.push(data);
+  selectSavedAddress(data.id);
+  showToast('✅ Delivery address saved!');
+  closeLocationPicker();
 }
-function onDateFilterChange(){
-  const mode = document.getElementById('order-date-filter').value;
-  document.getElementById('order-date-from').style.display = mode==='custom' ? 'block' : 'none';
-  document.getElementById('order-date-to').style.display = mode==='custom' ? 'block' : 'none';
-  renderAllOrders();
-}
-function renderAllOrders(){
-  const q = (document.getElementById('order-search')?.value||'').toLowerCase();
-  const riderF = document.getElementById('order-rider-filter')?.value || 'all';
-  let filtered = currentFilter==='all' ? ORDERS.slice() : ORDERS.filter(o=>o.status===currentFilter);
-  filtered = filtered.filter(passesDateFilter);
-  if(riderF !== 'all') filtered = filtered.filter(o => riderF==='unassigned' ? !o.rider_id : o.rider_id===riderF);
-  if(q) filtered = filtered.filter(o => o.id.toLowerCase().includes(q) || (o.customer||'').toLowerCase().includes(q) || (o.phone||'').toLowerCase().includes(q));
-  renderOrderRows(filtered,'all-orders-body');
-  populateRiderFilterOptions();
-}
-function populateRiderFilterOptions(){
-  const sel = document.getElementById('order-rider-filter');
-  if(!sel || sel.dataset.filled==='1') return;
-  sel.innerHTML = '<option value="all">All riders</option><option value="unassigned">Unassigned</option>' +
-    RIDERS.map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
-  sel.dataset.filled='1';
-}
-function filterOrders(f,btn){ currentFilter=f; document.querySelectorAll('#order-filters .filter-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderAllOrders(); }
-function openAssign(orderId){ assigningOrder=orderId; document.getElementById('modal-order-label').textContent='Assigning rider for '+orderId; populateRiderSelect(); document.getElementById('assign-modal').classList.remove('hidden'); }
-function closeModal(){ document.getElementById('assign-modal').classList.add('hidden'); assigningOrder=null; }
 
-let detailsOrderId = null;
-function openOrderDetails(orderId){
-  const o = ORDERS.find(x=>x.id===orderId);
-  if(!o) return;
-  detailsOrderId = orderId;
-  const itemsRows = o.items.map(i=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)"><span>${i.name} × ${i.qty}</span><span>₹${i.price*i.qty}</span></div>`).join('');
-  document.getElementById('order-details-body').innerHTML = `
-    <div style="display:flex;justify-content:space-between;margin-bottom:4px"><strong>Order ID</strong><span>${o.id}</span></div>
-    <div style="display:flex;justify-content:space-between;margin-bottom:4px"><strong>Date</strong><span>${o.date} · ${o.time}</span></div>
-    <div style="display:flex;justify-content:space-between;margin-bottom:4px"><strong>Status</strong><span>${o.status}</span></div>
-    <hr style="margin:10px 0;border-color:var(--border)">
-    <div style="margin-bottom:4px"><strong>Customer</strong></div>
-    <div style="color:var(--text2);margin-bottom:2px">${esc(o.customer)}</div>
-    <div style="color:var(--text2);margin-bottom:2px">${esc(o.phone)}</div>
-    <div style="color:var(--text2);margin-bottom:2px">${esc(o.address)}</div>
-    ${o.lat && o.lng ? `<div style="margin-bottom:8px"><a href="https://www.google.com/maps/dir/?api=1&destination=${o.lat},${o.lng}" target="_blank" style="color:var(--blue);font-size:12px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-map-pin-check" style="font-size:13px"></i> View pinned location on map (${o.lat.toFixed(5)}, ${o.lng.toFixed(5)})</a></div>` : `<div style="color:var(--text3);font-size:11px;margin-bottom:8px">No precise pin — customer used address text only</div>`}
-    <div style="margin-bottom:4px"><strong>Rider</strong></div>
-    <div style="color:var(--text2);margin-bottom:8px">${o.rider || 'Not assigned yet'}</div>
-    <div style="margin-bottom:4px"><strong>Items</strong></div>
-    ${itemsRows}
-    <div style="display:flex;justify-content:space-between;padding-top:8px;margin-top:6px"><span>Subtotal</span><span>₹${o.subtotal}</span></div>
-    <div style="display:flex;justify-content:space-between"><span>Tax</span><span>₹${o.tax}</span></div>
-    <div style="display:flex;justify-content:space-between;font-weight:800;font-size:14px;margin-top:4px"><span>Total</span><span>₹${o.amount}</span></div>
-    <div style="display:flex;justify-content:space-between;margin-top:8px"><span>Delivery OTP</span><span>${o.otp || '—'}</span></div>
-  `;
-  document.getElementById('order-details-modal').classList.remove('hidden');
-}
-function closeOrderDetails(){ document.getElementById('order-details-modal').classList.add('hidden'); detailsOrderId = null; }
+// ─── SUPABASE CONFIG ─────────────────────────────────────────
+const SUPABASE_URL = 'https://lfrizetfzlrqjdfmvfbd.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_9wruuPO4dvIAJLS9a5rHtA_DjpovXNS';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function printOrderInvoice(orderId){
-  const o = ORDERS.find(x=>x.id===orderId);
-  if(!o) return;
-  const itemsRows = o.items.map(i=>`<tr><td>${esc(i.name)}</td><td style="text-align:center">${i.qty}</td><td style="text-align:right">₹${i.price}</td><td style="text-align:right">₹${i.price*i.qty}</td></tr>`).join('');
-  const cgst = Math.round((o.tax/2)*100)/100;
-  const sgst = Math.round((o.tax-cgst)*100)/100;
-  const win = window.open('', '_blank', 'width=420,height=680');
-  win.document.write(`
-    <html><head><title>${o.id} — TildaBite Invoice</title>
-    <style>
-      body{font-family:'Courier New',monospace;padding:18px;font-size:13px;color:#000}
-      h2{text-align:center;margin-bottom:0;letter-spacing:1px}
-      .sub{text-align:center;font-size:11px;margin-bottom:14px;letter-spacing:1px;text-transform:uppercase}
-      table{width:100%;border-collapse:collapse;margin:10px 0}
-      th{text-align:left;font-size:11px;border-bottom:1px solid #000;padding:4px 2px}
-      td{padding:4px 2px;font-size:12px}
-      hr{border:none;border-top:1px dashed #000;margin:10px 0}
-      .row{display:flex;justify-content:space-between;padding:2px 0}
-      .total{font-weight:bold;font-size:16px;border-top:1px solid #000;padding-top:6px;margin-top:4px}
-      @media print{ .no-print{display:none} }
-    </style></head><body>
-      <h2>TildaBite</h2>
-      <div class="sub">Tax Invoice</div>
-      <hr>
-      <div class="row"><span>Order ID</span><span>${o.id}</span></div>
-      <div class="row"><span>Date</span><span>${o.date} · ${o.time}</span></div>
-      <hr>
-      <div><strong>Customer:</strong> ${esc(o.customer)}</div>
-      <div><strong>Phone:</strong> ${esc(o.phone)}</div>
-      <div><strong>Address:</strong> ${esc(o.address)}</div>
-      <hr>
-      <table>
-        <tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Amt</th></tr>
-        ${itemsRows}
-      </table>
-      <hr>
-      <div class="row"><span>Subtotal</span><span>₹${o.subtotal}</span></div>
-      <div class="row"><span>CGST</span><span>₹${cgst}</span></div>
-      <div class="row"><span>SGST</span><span>₹${sgst}</span></div>
-      <div class="row total"><span>Total</span><span>₹${o.amount}</span></div>
-      <hr>
-      <div style="text-align:center;font-size:11px;margin-top:10px">Thank you for ordering with TildaBite!</div>
-      <div class="no-print" style="text-align:center;margin-top:16px">
-        <button onclick="window.print()" style="padding:8px 18px;font-size:12px;cursor:pointer">Print</button>
-      </div>
-    </body></html>
-  `);
-  win.document.close();
-  win.focus();
-}
-async function confirmAssign(){
-  const sel=document.getElementById('rider-select');
-  if(!sel.value){toast('Select a rider first');return;}
-  const riderId=sel.value; const riderName=sel.options[sel.selectedIndex].text.split(' (')[0];
-  const { error } = await sb.rpc('admin_assign_rider', { p_token: adminSessionToken, p_order_id: assigningOrder, p_rider_id: riderId, p_rider_name: riderName });
-  if(error){ toast('❌ '+error.message); return; }
-  closeModal();
-  toast('Rider assigned! Customer OTP is visible on their orders page.');
-  adminRefreshOrders();
-}
-function populateRiderSelect(){ const sel=document.getElementById('rider-select'); recomputeRiderOrderCounts(); sel.innerHTML='<option value="">Choose a rider...</option>'+RIDERS.map(r=>'<option value="'+r.id+'">'+r.name+' (⭐'+r.rating+')'+(r.orders>0?' — '+r.orders+' active':' — free')+'</option>').join(''); }
-function renderRiders(){ document.getElementById('riders-grid').innerHTML=RIDERS.map(r=>'<div class="rider-card"><div class="rider-avatar">'+r.name.split(' ').map(w=>w[0]).join('')+'</div><div class="rider-name">'+r.name+'</div><div class="rider-phone"><i class="ti ti-phone" style="font-size:12px;margin-right:4px"></i>'+r.phone+'</div><div class="rider-stats"><div class="r-stat"><div class="r-stat-val">'+r.deliveries+'</div><div class="r-stat-label">Deliveries</div></div><div class="r-stat"><div class="r-stat-val">'+r.rating+'</div><div class="r-stat-label">Rating</div></div><div class="r-stat"><div class="r-stat-val">'+r.orders+'</div><div class="r-stat-label">Active</div></div></div><span class="rider-status '+(r.orders>0?'r-busy':'r-available')+'"><i class="ti ti-circle-filled" style="font-size:8px"></i>'+(r.orders>0?r.orders+' order'+(r.orders>1?'s':'')+' in progress':'No active orders')+'</span></div>').join(''); }
-function renderNotifLog(){ const icons={order:'ti-package',promo:'ti-speakerphone',alert:'ti-alert-triangle'}; const cls={order:'ni-order',promo:'ni-promo',alert:'ni-alert'}; document.getElementById('notif-log').innerHTML=notifLog.map(n=>'<div class="notif-item"><div class="notif-icon '+(cls[n.type]||'ni-order')+'"><i class="ti '+(icons[n.type]||'ti-bell')+'" style="font-size:15px"></i></div><div class="notif-content"><h4>'+n.title+'</h4><p>'+n.msg+'</p><p style="margin-top:3px;font-size:11px;color:var(--text3)">To: '+n.target+'</p></div><div class="notif-meta">'+n.time+'</div></div>').join(''); }
-async function adminLoadNotifications(){
-  const { data, error } = await sb.from('notifications').select('*').order('created_at', { ascending: false }).limit(30);
-  if(error){ console.error(error); return; }
-  notifLog = data.map(n => ({
-    type: n.type, title: n.title, msg: n.message,
-    time: new Date(n.created_at).toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'}),
-    target: n.target
-  }));
-  renderNotifLog();
-}
-async function sendNotification(){
-  const title=document.getElementById('notif-title').value.trim();
-  const msg=document.getElementById('notif-msg').value.trim();
-  const target=document.getElementById('notif-target').value;
-  if(!title||!msg){toast('Fill in title and message');return;}
-  const { error } = await sb.rpc('admin_send_notification', { p_token: adminSessionToken, p_type:'order', p_title: title, p_message: msg, p_target: target });
-  if(error){ toast('❌ '+error.message); return; }
-  document.getElementById('notif-title').value=''; document.getElementById('notif-msg').value='';
-  toast('Notification sent!');
-  adminLoadNotifications();
-}
-// ─── MENU (live from Supabase; stock/sold auto-updated by DB trigger on order insert) ───
-let MENU_ITEMS = [];
-let editingMenuId = null;
-
-async function loadMenu(){
-  const { data, error } = await sb.from('menu_items').select('*').order('id');
-  if(error){ console.error(error); MENU_ITEMS = []; return; }
-  MENU_ITEMS = data.map(m => ({
+// ─── MENU (live from Supabase) ───────────────────────────────
+let MENU = [];
+async function loadSharedMenu(){
+  const { data, error } = await sb.from('menu_items').select('*').eq('active', true).order('id');
+  if(error){ console.error('loadSharedMenu:', error); MENU = []; return; }
+  MENU = data.map(m => ({
     id: m.id, name: m.name, desc: m.description, price: m.price, cat: m.category,
     emoji: m.emoji, veg: m.veg, image: m.image || '', stock: m.stock,
     oos: m.oos, bestseller: m.bestseller, sold: m.sold, active: m.active
   }));
 }
+// Live sync — any admin change to the menu reflects here instantly
+sb.channel('menu-changes-customer')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'menu_items' }, async () => {
+    await loadSharedMenu();
+    applyFilters(document.getElementById('search-input').value.toLowerCase());
+  })
+  .subscribe();
 
-async function renderMenuMgmt(){
-  await loadMenu();
-  const q = (document.getElementById('mm-search')?.value||'').toLowerCase();
-  const list = MENU_ITEMS.filter(m => !q || m.name.toLowerCase().includes(q) || m.cat.toLowerCase().includes(q));
-  // stats
-  const inStock = MENU_ITEMS.filter(m=>!m.oos && m.active).length;
-  const fewLeft = MENU_ITEMS.filter(m=>!m.oos && typeof m.stock==='number' && m.stock>0 && m.stock<=5).length;
-  const oos     = MENU_ITEMS.filter(m=>m.oos || (typeof m.stock==='number' && m.stock===0)).length;
-  document.getElementById('mm-total').textContent = MENU_ITEMS.length;
-  document.getElementById('mm-instock').textContent = inStock;
-  document.getElementById('mm-fewleft').textContent = fewLeft;
-  document.getElementById('mm-oos').textContent = oos;
+const SAMPLE_ORDERS = [];
+let cart = {};
 
-  document.getElementById('menu-items-list').innerHTML = list.map(m=>{
-    const stockTxt = (typeof m.stock==='number')
-      ? (m.stock===0 ? '<span style="color:var(--red);font-weight:700">0 left</span>'
-        : m.stock<=5 ? '<span style="color:var(--amber);font-weight:700">Only '+m.stock+' left</span>'
-        : m.stock+' in stock')
-      : '<span style="color:var(--text3)">Unlimited</span>';
-    const statusBadge = m.oos
-      ? '<span style="padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;background:var(--rbg);color:var(--red);border:1px solid var(--rborder)">OUT OF STOCK</span>'
-      : (typeof m.stock==='number' && m.stock>0 && m.stock<=5)
-        ? '<span style="padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;background:var(--ambg);color:var(--amber);border:1px solid var(--amborder)">FEW LEFT</span>'
-        : '<span style="padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;background:var(--gbg);color:var(--green);border:1px solid var(--gborder)">AVAILABLE</span>';
-    const bestseller = m.bestseller ? '<span style="padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(245,158,11,0.12);color:#b45309;border:1px solid rgba(245,158,11,0.3);margin-left:4px">⭐ BEST SELLER</span>' : '';
-    const img = m.image
-      ? `<img src="${m.image}" style="width:48px;height:48px;border-radius:8px;object-fit:cover;background:var(--card)">`
-      : `<div style="width:48px;height:48px;border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:26px">${m.emoji||'🍽️'}</div>`;
-    return `<div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--border)">
-      ${img}
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap">${m.name} ${bestseller}</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px">${m.cat} · ${m.veg?'Veg':'Non-Veg'} · Sold: ${m.sold||0}</div>
-      </div>
-      <div style="font-size:12px;width:110px;text-align:right">${stockTxt}</div>
-      <div style="font-size:13px;font-weight:800;color:var(--accent);width:60px;text-align:right">₹${m.price}</div>
-      <div style="width:120px;text-align:center">${statusBadge}</div>
-      <button class="tb-btn" onclick="openMenuEditor(${m.id})" style="padding:5px 12px;font-size:11px"><i class="ti ti-edit" style="font-size:12px"></i> Edit</button>
-    </div>`;
-  }).join('') || '<div style="padding:30px;text-align:center;color:var(--text3);font-size:13px">No items match your search.</div>';
+// ─── STORE OPEN/CLOSED ────────────────────────────────────────
+let STORE_SETTINGS = { is_open:true, opening_time:'10:00', closing_time:'23:00', auto_reopen:true, phone:'' };
+let browsingWhileClosed = false;
+let countdownInterval = null;
+let notifyScheduled = false;
+
+function to12h(hhmm){
+  if(!hhmm) return '';
+  const [h,m] = hhmm.split(':').map(Number);
+  const ampm = h>=12 ? 'PM' : 'AM';
+  const h12 = h%12===0 ? 12 : h%12;
+  return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
 }
-
-async function openMenuEditor(id){
-  await loadMenu();
-  editingMenuId = id;
-  const m = id ? MENU_ITEMS.find(x=>x.id===id) : {name:'',desc:'',price:'',cat:'biryani',emoji:'🍽️',veg:true,image:'',stock:'',oos:false,bestseller:false};
-  if(!m) return;
-  document.getElementById('menu-modal-title').textContent = id ? 'Edit menu item' : 'Add menu item';
-  document.getElementById('mm-name').value = m.name||'';
-  document.getElementById('mm-desc').value = m.desc||'';
-  document.getElementById('mm-price').value = m.price||'';
-  document.getElementById('mm-cat').value = m.cat||'biryani';
-  document.getElementById('mm-emoji').value = m.emoji||'';
-  document.getElementById('mm-veg').value = String(!!m.veg);
-  document.getElementById('mm-image').value = m.image||'';
-  document.getElementById('mm-stock').value = (typeof m.stock==='number') ? m.stock : '';
-  document.getElementById('mm-oos-toggle').value = String(!!m.oos);
-  document.getElementById('mm-bestseller').checked = !!m.bestseller;
-  document.getElementById('mm-delete-btn').style.display = id ? 'inline-block' : 'none';
-  document.getElementById('menu-modal').classList.remove('hidden');
+function nextOpeningDate(openingTime){
+  const [h,m] = openingTime.split(':').map(Number);
+  const now = new Date();
+  let target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
+  if(target <= now) target.setDate(target.getDate()+1);
+  return target;
 }
-function closeMenuModal(){ document.getElementById('menu-modal').classList.add('hidden'); editingMenuId = null; }
-
-async function saveMenuItem(){
-  const name = document.getElementById('mm-name').value.trim();
-  const price = parseInt(document.getElementById('mm-price').value);
-  if(!name){ toast('Item name is required'); return; }
-  if(isNaN(price) || price<0){ toast('Enter a valid price'); return; }
-  const stockRaw = document.getElementById('mm-stock').value.trim();
-  const stock = stockRaw==='' ? null : Math.max(0, parseInt(stockRaw));
-  let oos = document.getElementById('mm-oos-toggle').value === 'true';
-  if(stock === 0) oos = true;
-  const payload = {
-    name, description: document.getElementById('mm-desc').value.trim(),
-    price, category: document.getElementById('mm-cat').value,
-    emoji: document.getElementById('mm-emoji').value.trim() || '🍽️',
-    veg: document.getElementById('mm-veg').value === 'true',
-    image: document.getElementById('mm-image').value.trim(),
-    stock, oos, bestseller: document.getElementById('mm-bestseller').checked,
-    active: true,
+function nextOpeningDateAfter(openingTime, fromDate){
+  const [h,m] = openingTime.split(':').map(Number);
+  let target = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate(), h, m, 0);
+  if(target <= fromDate) target.setDate(target.getDate()+1);
+  return target;
+}
+function isEffectivelyOpen(){
+  if(STORE_SETTINGS.is_open) return true;
+  if(STORE_SETTINGS.auto_reopen){
+    // Only auto-reopen once the next scheduled opening time SINCE the manual close has passed.
+    // (Just checking "is now inside 10am-11pm?" would ignore a same-day manual close.)
+    const closedAt = STORE_SETTINGS.updated_at ? new Date(STORE_SETTINGS.updated_at) : new Date(0);
+    const nextOpen = nextOpeningDateAfter(STORE_SETTINGS.opening_time, closedAt);
+    return new Date() >= nextOpen;
+  }
+  return false;
+}
+async function loadStoreSettings(){
+  const { data, error } = await sb.from('store_settings').select('*').eq('id',1).maybeSingle();
+  if(error || !data) return; // if table/row missing, app just behaves as always-open
+  STORE_SETTINGS = data;
+  applyStoreStatus();
+}
+function applyStoreStatus(){
+  if(isEffectivelyOpen()){
+    document.getElementById('closed-overlay').classList.add('hidden');
+    document.getElementById('closed-banner').classList.add('hidden');
+    browsingWhileClosed = false;
+    if(countdownInterval){ clearInterval(countdownInterval); countdownInterval=null; }
+  } else {
+    document.getElementById('closed-opening-time').textContent = to12h(STORE_SETTINGS.opening_time);
+    document.getElementById('closed-hours-text').textContent = `${to12h(STORE_SETTINGS.opening_time)} – ${to12h(STORE_SETTINGS.closing_time)}`;
+    document.getElementById('closed-call-btn').style.display = STORE_SETTINGS.phone ? 'flex' : 'none';
+    startCountdown();
+    if(browsingWhileClosed){
+      document.getElementById('closed-overlay').classList.add('hidden');
+      document.getElementById('closed-banner').classList.remove('hidden');
+    } else {
+      document.getElementById('closed-overlay').classList.remove('hidden');
+      document.getElementById('closed-banner').classList.add('hidden');
+    }
+  }
+}
+function startCountdown(){
+  if(countdownInterval) clearInterval(countdownInterval);
+  const tick = () => {
+    if(isEffectivelyOpen()){ applyStoreStatus(); return; }
+    const closedAt = STORE_SETTINGS.updated_at ? new Date(STORE_SETTINGS.updated_at) : new Date();
+    const target = nextOpeningDateAfter(STORE_SETTINGS.opening_time, closedAt);
+    const diff = target - new Date();
+    const hrs = Math.floor(diff/3600000);
+    const mins = Math.floor((diff%3600000)/60000);
+    document.getElementById('closed-countdown-text').textContent = `${hrs}h ${mins}m`;
   };
-  const { error } = await sb.rpc('admin_upsert_menu_item', {
-    p_token: adminSessionToken,
-    p_id: editingMenuId || null,
-    p_name: name,
-    p_description: payload.description,
-    p_category: payload.category,
-    p_price: price,
-    p_emoji: payload.emoji,
-    p_image: payload.image,
-    p_veg: payload.veg,
-    p_stock: stock,
-    p_oos: oos,
-    p_bestseller: payload.bestseller
-  });
-  if(!error) toast(editingMenuId ? 'Item updated — live on customer app ✓' : 'Item added — live on customer app ✓');
-  if(error){ toast('❌ '+error.message); return; }
-  closeMenuModal(); renderMenuMgmt();
+  tick();
+  countdownInterval = setInterval(tick, 30000);
 }
-async function deleteMenuItem(){
-  if(!editingMenuId) return;
-  if(!confirm('Delete this item? Customers will no longer see it.')) return;
-  const { error } = await sb.rpc('admin_delete_menu_item', { p_token: adminSessionToken, p_id: editingMenuId });
-  if(error){ toast('❌ '+error.message); return; }
-  closeMenuModal(); renderMenuMgmt();
-  toast('Item deleted');
+function showClosedOverlay(){
+  browsingWhileClosed = false;
+  applyStoreStatus();
+}
+function browseMenuReadOnly(){
+  browsingWhileClosed = true;
+  applyStoreStatus();
+  showToast('Browsing menu — ordering opens at '+to12h(STORE_SETTINGS.opening_time));
+}
+function callRestaurant(){
+  if(STORE_SETTINGS.phone) window.location.href = 'tel:'+STORE_SETTINGS.phone.replace(/\s/g,'');
+}
+function requestOpenNotify(){
+  if(!('Notification' in window)){ showToast('Notifications not supported on this browser'); return; }
+  if(Notification.permission === 'granted'){ scheduleOpenNotification(); return; }
+  Notification.requestPermission().then(perm=>{
+    if(perm === 'granted'){ scheduleOpenNotification(); }
+    else { showToast('Enable notifications in browser settings to get notified'); }
+  });
+}
+function scheduleOpenNotification(){
+  if(notifyScheduled){ showToast("You're already set — we'll notify you when we open!"); return; }
+  const target = nextOpeningDate(STORE_SETTINGS.opening_time);
+  const diff = target - new Date();
+  notifyScheduled = true;
+  showToast("Got it! We'll notify you when we open 🔔 (keep this tab open)");
+  setTimeout(()=>{
+    if(isEffectivelyOpen() || document.hidden === false){
+      new Notification('TildaBite is open! 🍽️', { body: "We're back — order your favourites now!" });
+    }
+  }, Math.max(0, diff));
+}
+// Realtime: reflect admin's open/close toggle instantly
+sb.channel('customer-store-settings')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'store_settings' }, () => loadStoreSettings())
+  .subscribe();
+let isDark = true;
+document.body.classList.add('dark');
+document.getElementById('theme-icon').className = 'ti ti-sun';
+let authMode = 'signup';
+let currentCat = 'all';
+let dietFilter = 'all'; // 'all' | 'veg' | 'nonveg'
+let isLoggedIn = false;
+let loggedInUser = { name: 'Guest', email: '' };
+let sessionToken = null;
+const SESSION_KEY = 'tildabite_session';
+const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+function saveSession(acc){
+  localStorage.setItem(SESSION_KEY, JSON.stringify({
+    token: acc.token, id: acc.id, name: acc.name, email: acc.email, phone: acc.phone,
+    expiresAt: Date.now() + SESSION_DURATION_MS
+  }));
+}
+function clearSession(){
+  localStorage.removeItem(SESSION_KEY);
+}
+function restoreSession(){
+  const raw = localStorage.getItem(SESSION_KEY);
+  if(!raw) return;
+  let saved;
+  try { saved = JSON.parse(raw); } catch(e){ clearSession(); return; }
+  if(!saved || !saved.expiresAt || Date.now() > saved.expiresAt){
+    clearSession(); // session expired after 24hrs — back to signed-out state
+    return;
+  }
+  isLoggedIn = true;
+  sessionToken = saved.token;
+  loggedInUser = { id: saved.id, name: saved.name, email: saved.email, phone: saved.phone };
+  document.getElementById('auth-nav-label').textContent = saved.name.split(' ')[0];
+  document.getElementById('auth-nav-btn').querySelector('i').className = 'ti ti-user-circle';
+  document.getElementById('profile-name-display').textContent = saved.name;
+  document.getElementById('profile-email-display').textContent = saved.email;
+  subscribeToMyOrders();
+  renderOrders();
 }
 
-function showView(v,btn){
+function requireAuth(action) {
+  if (!isLoggedIn) {
+    showToast('Please sign in to continue 🔑');
+    showView('auth');
+    document.getElementById('auth-sub').textContent = 'Sign in to place orders & track deliveries';
+    pendingAction = action;
+    return false;
+  }
+  return true;
+}
+
+let pendingAction = null;
+
+function setDiet(type){
+  dietFilter = type;
+  document.getElementById('diet-all').className   = 'diet-btn' + (type==='all'?' active-all':'');
+  document.getElementById('diet-veg').className   = 'diet-btn' + (type==='veg'?' active-veg':'');
+  document.getElementById('diet-nonveg').className= 'diet-btn' + (type==='nonveg'?' active-nonveg':'');
+  const q = document.getElementById('search-input').value.toLowerCase();
+  applyFilters(q);
+}
+
+function showSkeleton(){
+  const sg = document.getElementById('skeleton-grid');
+  const mg = document.getElementById('menu-grid');
+  sg.style.display='grid';
+  mg.style.display='none';
+  sg.innerHTML = Array(6).fill(0).map(()=>`
+    <div class="skeleton-card">
+      <div class="skeleton-img"></div>
+      <div class="skeleton-body">
+        <div class="skeleton-line tag"></div>
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line short"></div>
+        <div class="skeleton-footer">
+          <div class="skeleton-price"></div>
+          <div class="skeleton-btn"></div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function hideSkeleton(){
+  document.getElementById('skeleton-grid').style.display='none';
+  document.getElementById('menu-grid').style.display='grid';
+}
+
+function isOutOfStock(item){
+  if(item.oos) return true;
+  if(typeof item.stock === 'number' && item.stock <= 0) return true;
+  return false;
+}
+function remainingStock(item){
+  if(typeof item.stock !== 'number') return Infinity;
+  return Math.max(0, item.stock - (cart[item.id]||0));
+}
+
+function renderMenu(items){
+  hideSkeleton();
+  const grid = document.getElementById('menu-grid');
+  grid.innerHTML = items.map(item => {
+    const qty = cart[item.id]||0;
+    const oos = isOutOfStock(item);
+    const rem = remainingStock(item);
+    const fewLeft = !oos && typeof item.stock==='number' && item.stock>0 && item.stock<=5;
+    const badges = [];
+    if(item.bestseller) badges.push('<span style="display:inline-block;background:rgba(245,158,11,0.15);color:#b45309;border:1px solid rgba(245,158,11,0.35);border-radius:6px;font-size:10px;font-weight:700;padding:2px 8px;margin-bottom:6px;letter-spacing:0.5px;margin-left:4px">⭐ BEST SELLER</span>');
+    if(oos) badges.push('<span style="display:inline-block;background:rgba(220,38,38,0.1);color:#DC2626;border:1px solid rgba(220,38,38,0.35);border-radius:6px;font-size:10px;font-weight:700;padding:2px 8px;margin-bottom:6px;letter-spacing:0.5px;margin-left:4px">OUT OF STOCK</span>');
+    else if(fewLeft) badges.push(`<span style="display:inline-block;background:rgba(245,158,11,0.12);color:#b45309;border:1px solid rgba(245,158,11,0.35);border-radius:6px;font-size:10px;font-weight:700;padding:2px 8px;margin-bottom:6px;letter-spacing:0.5px;margin-left:4px">ONLY ${item.stock} LEFT</span>`);
+    const imgHtml = item.image
+      ? `<div class="menu-card-img" style="background:#000"><img src="${item.image}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='${item.emoji||'🍽️'}';this.parentElement.style.background='linear-gradient(145deg,#FFF0E6,#FFF8F3)';this.parentElement.style.fontSize='68px'"></div>`
+      : `<div class="menu-card-img" style="position:relative">${item.emoji||'🍽️'}${oos?'<div style="position:absolute;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;letter-spacing:1px">SOLD OUT</div>':''}</div>`;
+    const actionHtml = oos
+      ? `<button class="add-btn" disabled style="background:var(--text3);cursor:not-allowed;box-shadow:none" title="Out of stock">×</button>`
+      : qty===0
+        ? `<button class="add-btn" onclick="addItem(${item.id})">+</button>`
+        : `<div class="qty-control"><button class="qty-btn" onclick="removeItem(${item.id})">−</button><span class="qty-num">${qty}</span><button class="qty-btn" onclick="addItem(${item.id})"${rem<=0?' disabled style="opacity:0.4;cursor:not-allowed"':''}>+</button></div>`;
+    return `<div class="menu-card"${oos?' style="opacity:0.7"':''}>
+      ${imgHtml}
+      <div class="menu-card-body">
+        <div style="display:flex;flex-wrap:wrap;align-items:center">
+          <div class="${item.veg?'veg-tag':'nonveg-tag'}">${item.veg?'VEG':'NON-VEG'}</div>
+          ${badges.join('')}
+        </div>
+        <h3>${item.name}</h3>
+        <p>${item.desc||''}</p>
+        <div class="menu-card-footer">
+          <div class="price">₹${item.price}</div>
+          ${actionHtml}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterCat(cat, btn){
+  currentCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const q = document.getElementById('search-input').value.toLowerCase();
+  applyFilters(q);
+}
+
+function filterMenu(){
+  const q = document.getElementById('search-input').value.toLowerCase();
+  applyFilters(q);
+}
+
+function applyFilters(q){
+  let items = MENU.slice();
+  if(currentCat!=='all') items = items.filter(i=>i.cat===currentCat);
+  if(dietFilter==='veg') items = items.filter(i=>i.veg);
+  if(dietFilter==='nonveg') items = items.filter(i=>!i.veg);
+  if(q) items = items.filter(i=>i.name.toLowerCase().includes(q)||(i.desc||'').toLowerCase().includes(q));
+  // Best sellers first, then in-stock before out-of-stock
+  items.sort((a,b)=>{
+    const oa = isOutOfStock(a)?1:0, ob = isOutOfStock(b)?1:0;
+    if(oa!==ob) return oa-ob;
+    return (b.bestseller?1:0) - (a.bestseller?1:0);
+  });
+  document.getElementById('menu-section-title').textContent = items.length + ' items found';
+  document.getElementById('diet-count-badge').textContent = items.length + ' item' + (items.length!==1?'s':'');
+  renderMenu(items);
+}
+
+function addItem(id){
+  if(!isEffectivelyOpen()){ showToast("We're closed right now — opening at "+to12h(STORE_SETTINGS.opening_time)); return; }
+  if(!requireAuth('addItem')) return;
+  const item = MENU.find(m=>m.id==id);
+  if(!item || isOutOfStock(item)){ showToast('Sorry, this item is out of stock'); return; }
+  if(typeof item.stock === 'number' && (cart[id]||0) >= item.stock){
+    showToast(`Only ${item.stock} available — that's the max!`);
+    return;
+  }
+  cart[id]=(cart[id]||0)+1;
+  updateCartUI();
+  applyFilters(document.getElementById('search-input').value.toLowerCase());
+  showToast('Added to cart!');
+}
+function removeItem(id){
+  if(cart[id]>0) cart[id]--;
+  if(cart[id]===0) delete cart[id];
+  updateCartUI();
+  applyFilters(document.getElementById('search-input').value.toLowerCase());
+}
+
+function updateCartUI(){
+  const count = Object.values(cart).reduce((a,b)=>a+b,0);
+  const badge = document.getElementById('cart-badge');
+  if(count>0){badge.style.display='flex';badge.textContent=count;}else{badge.style.display='none';}
+  renderCartDrawer();
+}
+
+function renderCartDrawer(){
+  const list = document.getElementById('cart-items-list');
+  const footer = document.getElementById('cart-footer');
+  const keys = Object.keys(cart).filter(k=>cart[k]>0);
+  if(keys.length===0){
+    list.innerHTML='<div class="cart-empty"><i class="ti ti-shopping-cart-off"></i>Your cart is empty<br><span style="font-size:12px;margin-top:6px;display:block">Add items from the menu</span></div>';
+    footer.style.display='none';return;
+  }
+  list.innerHTML=keys.map(k=>{
+    const item=MENU.find(m=>m.id==k);
+    return `<div class="cart-item">
+      <div class="cart-item-emoji">${item.emoji}</div>
+      <div class="cart-item-info"><h4>${item.name}</h4><p>₹${item.price} × ${cart[k]}</p></div>
+      <div class="qty-control" style="background:var(--card)">
+        <button class="qty-btn" onclick="removeItem(${k})">−</button>
+        <span class="qty-num">${cart[k]}</span>
+        <button class="qty-btn" onclick="addItem(${k})">+</button>
+      </div>
+    </div>`;
+  }).join('');
+  footer.style.display='block';
+  const sub=keys.reduce((s,k)=>{const i=MENU.find(m=>m.id==k);return s+i.price*cart[k];},0);
+  const tax=Math.round(sub*0.05);
+  document.getElementById('cart-subtotal').textContent='₹'+sub;
+  document.getElementById('cart-tax').textContent='₹'+tax;
+  document.getElementById('cart-total').textContent='₹'+(sub+tax);
+}
+
+function openCart(){document.getElementById('cart-overlay').classList.add('open');}
+function closeCart(){document.getElementById('cart-overlay').classList.remove('open');}
+function closeCartIfOutside(e){if(e.target===document.getElementById('cart-overlay'))closeCart();}
+
+function goCheckout(){
+  if(!requireAuth('checkout')) return;
+  closeCart();
+  renderCheckout();
+  showView('checkout');
+}
+
+function renderCheckout(){
+  const keys = Object.keys(cart).filter(k=>cart[k]>0);
+  const itemsEl = document.getElementById('checkout-items-list');
+  itemsEl.innerHTML = keys.map(k=>{
+    const item=MENU.find(m=>m.id==k);
+    return `<div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;border-bottom:1px solid var(--border)"><span>${item.name} × ${cart[k]}</span><span>₹${item.price*cart[k]}</span></div>`;
+  }).join('');
+  const sub=keys.reduce((s,k)=>{const i=MENU.find(m=>m.id==k);return s+i.price*cart[k];},0);
+  const tax=Math.round(sub*0.05);
+  document.getElementById('co-subtotal').textContent='₹'+sub;
+  document.getElementById('co-tax').textContent='₹'+tax;
+  document.getElementById('co-total').textContent='₹'+(sub+tax);
+  loadSavedAddresses();
+}
+
+function selectPay(el){
+  document.querySelectorAll('.payment-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  el.querySelector('input').checked=true;
+}
+
+async function placeOrder(){
+  if(!isEffectivelyOpen()){ showToast("We're closed right now — opening at "+to12h(STORE_SETTINGS.opening_time)); showClosedOverlay(); return; }
+  if(!requireAuth('placeOrder')) return;
+  const address = document.getElementById('delivery-address').value.trim();
+  if(!address || deliveryLat === null || deliveryLng === null){ showToast('📍 Please select or add a delivery address'); openLocationPicker(); return; }
+  const keys = Object.keys(cart).filter(k=>cart[k]>0);
+  if(!keys.length){ showToast('Your cart is empty'); return; }
+  // Only send item id + qty — server looks up the real price itself,
+  // so a tampered client can no longer change what gets charged.
+  const itemsPayload = keys.map(k=>({ id: Number(k), qty: cart[k] }));
+
+  const payBtn = document.getElementById('place-order-btn');
+  if(payBtn){ payBtn.disabled = true; payBtn.textContent = 'Please wait...'; }
+
+  // Step 1: ask our server (Edge Function) to price the cart for real
+  // and open a Razorpay order for that amount.
+  const { data: payData, error: payErr } = await sb.functions.invoke('create-payment-order', {
+    body: { token: sessionToken, items: itemsPayload, address, lat: deliveryLat, lng: deliveryLng }
+  });
+
+  if(payErr || payData?.error){
+    const msg = payData?.error === 'TOO_MANY_ATTEMPTS'
+      ? 'Too many payment attempts — please wait a few minutes and try again'
+      : (payData?.error || payErr.message || 'Could not start payment');
+    showToast('❌ '+msg);
+    if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
+    return;
+  }
+
+  // Step 2: open Razorpay Checkout — customer pays here (UPI/card/etc.)
+  const rzp = new Razorpay({
+    key: payData.key_id,
+    amount: payData.amount,
+    currency: payData.currency,
+    order_id: payData.razorpay_order_id,
+    name: 'TildaBite',
+    description: 'Food order payment',
+    prefill: { name: loggedInUser?.name || '', contact: loggedInUser?.phone || '', email: loggedInUser?.email || '' },
+    theme: { color: '#F07C1A' },
+    handler: async function(response){
+      // Step 3: payment succeeded on Razorpay's side — verify signature
+      // server-side and create the real order.
+      const { data: verifyData, error: verifyErr } = await sb.functions.invoke('verify-payment', {
+        body: {
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_signature: response.razorpay_signature
+        }
+      });
+
+      if(verifyErr || verifyData?.error || !verifyData?.success){
+        showToast('❌ Payment received but confirmation failed — contact support with payment ID: '+response.razorpay_payment_id);
+        if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
+        return;
+      }
+
+      const order = verifyData.order;
+      const otp = order.otp;
+      showToast('Order placed! Your delivery OTP is: '+otp+' 🎉');
+      window._lastOtp = otp;
+      window._lastOrderId = order.id;
+      cart={};updateCartUI();
+      if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
+      await loadSharedMenu(); // stock/sold already decremented in DB via trigger
+      applyFilters(document.getElementById('search-input').value.toLowerCase());
+      await renderOrders();
+      setTimeout(()=>{showView('orders');setActive(document.querySelectorAll('.bottom-nav-item')[1]);},1200);
+    },
+    modal: {
+      ondismiss: function(){
+        // customer closed the Razorpay popup without paying
+        if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
+        showToast('Payment cancelled');
+      }
+    }
+  });
+
+  rzp.on('payment.failed', function(){
+    showToast('❌ Payment failed — please try again');
+    if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
+  });
+
+  if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
+  rzp.open();
+}
+
+async function renderOrders(){
+  const list = document.getElementById('orders-list');
+  if(!isLoggedIn){
+    list.innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--text3)"><i class="ti ti-lock" style="font-size:48px;display:block;margin-bottom:12px"></i>Sign in to see your orders</div>';
+    return;
+  }
+  const { data, error } = await sb.from('orders').select('*').eq('user_id', loggedInUser.id).order('created_at', { ascending: false });
+  const myOrders = (error ? [] : data).map(o => ({
+    id: o.id,
+    date: new Date(o.created_at).toLocaleDateString('en-IN'),
+    status: o.status,
+    items: (o.items || []).map(i => `${i.name} ×${i.qty}`),
+    total: o.total,
+    otp: o.otp
+  }));
+  let otpBanner = '';
+  if(window._lastOtp && window._lastOrderId){
+    otpBanner = `<div style="background:var(--green-bg);border:1px solid var(--green);border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+      <i class="ti ti-lock" style="font-size:22px;color:var(--green)"></i>
+      <div>
+        <div style="font-size:12px;color:var(--green);font-weight:600;margin-bottom:2px">Delivery OTP for ${window._lastOrderId}</div>
+        <div style="font-size:26px;font-weight:800;letter-spacing:8px;color:var(--green)">${window._lastOtp}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">Share this with your delivery rider to confirm delivery</div>
+      </div>
+    </div>`;
+  }
+  if(myOrders.length===0){
+    list.innerHTML=otpBanner+'<div style="text-align:center;padding:60px 20px;color:var(--text3)"><i class="ti ti-package" style="font-size:48px;display:block;margin-bottom:12px"></i>No orders yet<br><span style="font-size:12px;margin-top:6px;display:block">Your orders will appear here once you place one</span></div>';
+    return;
+  }
+  list.innerHTML = otpBanner + myOrders.map(o=>{
+    const statusCls = o.status==='delivered'?'status-delivered':o.status==='pending'?'status-preparing':'status-otw';
+    const statusLabel = o.status==='delivered'?'✔ Delivered':o.status==='pending'?'⏳ Pending':'🚴 On the way';
+    const otpTag = o.status!=='delivered'?`<div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--accent)"><i class="ti ti-lock" style="font-size:12px"></i>OTP: ${o.otp}</div>`:'';
+    return `<div class="order-card">
+      <div class="order-card-header">
+        <div><div style="font-size:15px;font-weight:700">${o.id}</div><div class="order-id">${o.date}</div></div>
+        <div class="order-status ${statusCls}">${statusLabel}</div>
+      </div>
+      <div class="order-items-list">${o.items.join(' · ')}</div>
+      ${otpTag}
+      <div class="order-footer" style="margin-top:10px">
+        <div style="font-size:15px;font-weight:700">₹${o.total}</div>
+        <button class="reorder-btn" onclick="showToast('Reorder coming soon!')">Reorder</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showView(v){
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
-  const titles={overview:'Overview',orders:'All orders',analytics:'Analytics',customers:'Customers',riders:'Riders',notifications:'Notifications','menu-mgmt':'Menu management',settings:'Settings'};
-  document.getElementById('page-title').textContent=titles[v]||v;
-  if(btn){document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
-  if(v==='analytics') renderAnalytics();
-  if(v==='customers') loadAndRenderCustomers();
+  window.scrollTo(0,0);
 }
-let tTimer;
-function toast(msg){ clearTimeout(tTimer); document.getElementById('tmsg').textContent=msg; document.getElementById('toast').classList.add('show'); tTimer=setTimeout(()=>document.getElementById('toast').classList.remove('show'),2400); }
-function toggleTheme(){ isDark=!isDark; document.body.classList.toggle('dark',isDark); document.getElementById('theme-icon').className=isDark?'ti ti-sun':'ti ti-moon'; }
-function updateOverviewStats(){ const pending=ORDERS.filter(x=>x.status==='pending').length; const total=ORDERS.length; const revenue=ORDERS.filter(x=>x.status!=='cancelled').reduce((s,o)=>s+o.amount,0); const activeRiders=RIDERS.filter(r=>r.orders>0).length; document.getElementById('ov-pending').textContent=pending; document.getElementById('ov-total').textContent=total; document.getElementById('ov-revenue').textContent='₹'+revenue.toLocaleString('en-IN'); document.getElementById('ov-riders').textContent=activeRiders; document.getElementById('pending-badge').textContent=pending; }
 
-// ═══════════════════ ANALYTICS ═══════════════════
-let analyticsRange = '24h';
-function setAnalyticsRange(r,btn){
-  analyticsRange = r;
-  document.querySelectorAll('#analytics-range .filter-btn').forEach(b=>b.classList.remove('active'));
+function setActive(btn){
+  document.querySelectorAll('.bottom-nav-item').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  renderAnalytics();
 }
-function ordersInRange(range){
-  const now = new Date();
-  let from;
-  if(range==='24h'){ from = new Date(now.getTime() - 24*3600*1000); }
-  else if(range==='week'){ from = new Date(now.getTime() - 7*24*3600*1000); }
-  else if(range==='month'){ from = new Date(now.getFullYear(), now.getMonth(), 1); }
-  else if(range==='year'){ from = new Date(now.getFullYear(), 0, 1); }
-  return ORDERS.filter(o => new Date(o.created_at) >= from && o.status!=='cancelled');
-}
-function renderAnalytics(){
-  const orders = ordersInRange(analyticsRange);
-  const revenue = orders.reduce((s,o)=>s+o.amount,0);
-  const aov = orders.length ? Math.round(revenue/orders.length) : 0;
-  document.getElementById('an-orders').textContent = orders.length;
-  document.getElementById('an-revenue').textContent = '₹'+revenue.toLocaleString('en-IN');
-  document.getElementById('an-aov').textContent = '₹'+aov;
 
-  // Trend buckets: hourly for 24h, daily otherwise
-  let buckets = {};
-  let labelFn, keyFn;
-  if(analyticsRange==='24h'){
-    keyFn = d => d.getHours()+':00';
-    for(let h=0;h<24;h++) buckets[h+':00']=0;
-    orders.forEach(o=>{ const h=new Date(o.created_at).getHours(); buckets[h+':00'] = (buckets[h+':00']||0)+1; });
+// ─── TERMS & CONDITIONS / PRIVACY POLICY ──────────────────────
+let legalReturnView = 'auth';
+const LEGAL_LAST_UPDATED = 'July 2026';
+
+const TERMS_HTML = `
+  <p><strong>Last updated:</strong> ${LEGAL_LAST_UPDATED}</p>
+  <p>Welcome to TildaBite. By creating an account, browsing our menu, or placing an order through our website or app ("Platform"), you agree to the following Terms & Conditions. Please read them carefully.</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">1. Account Registration</h4>
+  <p>You must provide accurate and complete information (name, email, phone number) when creating an account. You are responsible for keeping your login credentials confidential and for all activity under your account.</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">2. Orders & Payments</h4>
+  <p>All orders placed through the Platform are subject to acceptance and item availability. Prices, taxes, and delivery charges are displayed at checkout before you confirm payment. We currently accept online payments only (UPI, NetBanking, and cards via Razorpay) — Cash on Delivery is not available.</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">3. Delivery</h4>
+  <p>Estimated delivery/preparation times are approximate and may vary due to weather, traffic, order volume, or circumstances beyond our control. We are not liable for delays caused by factors outside our reasonable control.</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">4. Cancellations & Refunds</h4>
+  <p>Orders can typically be cancelled only before preparation begins. Once an order is being prepared or out for delivery, it may not be eligible for cancellation. Refunds for valid cancellations, missing items, or quality issues will be processed to the original payment method or as store credit, at our discretion, within a reasonable time.</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">5. Restaurant Hours & Availability</h4>
+  <p>We may mark the restaurant as closed at any time (e.g. outside operating hours, high demand, or unforeseen circumstances). Ordering will not be possible while the restaurant is closed.</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">6. User Conduct</h4>
+  <p>You agree not to misuse the Platform, including submitting false orders, abusing delivery staff, attempting to interfere with the Platform's security, or using it for any unlawful purpose. We reserve the right to suspend or terminate accounts that violate these Terms.</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">7. Limitation of Liability</h4>
+  <p>To the maximum extent permitted by law, TildaBite is not liable for indirect, incidental, or consequential damages arising from use of the Platform. Our total liability for any claim is limited to the amount paid for the relevant order.</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">8. Changes to These Terms</h4>
+  <p>We may update these Terms from time to time. Continued use of the Platform after changes are posted constitutes acceptance of the revised Terms.</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">9. Governing Law</h4>
+  <p>These Terms are governed by the laws of India, and any disputes will be subject to the jurisdiction of the courts where TildaBite is registered/operated.</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">10. Contact Us</h4>
+  <p>For any questions about these Terms, reach us at <strong>sunny22101082@gmail.com</strong> or WhatsApp <strong>+91 91833 35030</strong>.</p>
+`;
+
+const PRIVACY_HTML = `
+  <p><strong>Last updated:</strong> ${LEGAL_LAST_UPDATED}</p>
+  <p>This Privacy Policy explains how TildaBite ("we", "us") collects, uses, and protects your information when you use our website or app ("Platform").</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">1. Information We Collect</h4>
+  <p>When you sign up or place an order, we collect your name, email address, phone number, delivery address, and order history. We do not store your full card details — payments are handled securely through our payment partners.</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">2. How We Use Your Information</h4>
+  <p>We use your information to process and deliver your orders, send order/status updates (via SMS, WhatsApp, email, or push notification), provide customer support, improve our menu and service, and share offers or promotions (you can opt out of promotional messages anytime).</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">3. Sharing of Information</h4>
+  <p>We share only the information necessary to fulfil your order with our delivery riders (name, phone, address) and payment processors (for completing transactions). We do not sell your personal information to third parties.</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">4. Data Storage & Security</h4>
+  <p>Your data is stored on secure, access-controlled servers. While we take reasonable measures to protect your information, no method of electronic storage is 100% secure, and we cannot guarantee absolute security.</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">5. Cookies & Local Storage</h4>
+  <p>We use local storage on your device to keep you signed in for up to 24 hours and to remember basic preferences like theme. This data stays on your device and is not shared with third parties.</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">6. Your Rights</h4>
+  <p>You can request access to, correction of, or deletion of your personal data at any time by contacting us at <strong>sunny22101082@gmail.com</strong>. You may also sign out at any time to end your active session.</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">7. Children's Privacy</h4>
+  <p>Our Platform is not directed at children under 13, and we do not knowingly collect personal information from children.</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">8. Changes to This Policy</h4>
+  <p>We may update this Privacy Policy periodically. Continued use of the Platform after changes are posted constitutes acceptance of the revised policy.</p>
+
+  <h4 style="margin:16px 0 6px;color:var(--text)">9. Contact Us</h4>
+  <p>For privacy-related questions or requests, email <strong>sunny22101082@gmail.com</strong> or message us on WhatsApp at <strong>+91 91833 35030</strong>.</p>
+`;
+
+function showLegalPage(type){
+  const active = document.querySelector('.view.active');
+  legalReturnView = active ? active.id.replace('view-','') : 'auth';
+  document.getElementById('legal-title').textContent = type === 'privacy' ? 'Privacy Policy' : 'Terms & Conditions';
+  document.getElementById('legal-content').innerHTML = type === 'privacy' ? PRIVACY_HTML : TERMS_HTML;
+  showView('legal');
+}
+function closeLegalPage(){
+  showView(legalReturnView);
+}
+
+function toggleAuth(){
+  authMode = authMode==='login'?'signup':'login';
+  const isLogin = authMode==='login';
+  document.getElementById('auth-title').textContent = isLogin?'Welcome back 👋':'Create account 🚀';
+  document.getElementById('auth-sub').textContent   = isLogin?'Sign in to track orders & save favourites':'Join TildaBite – your favourite food, delivered fast';
+  document.getElementById('auth-submit-btn').textContent = isLogin?'Sign in':'Create account';
+  document.getElementById('auth-switch').innerHTML  = isLogin?`Don't have an account? <a onclick="toggleAuth()">Sign up</a>`:`Already have an account? <a onclick="toggleAuth()">Sign in</a>`;
+  document.getElementById('signup-fields').style.display = isLogin?'none':'block';
+  document.getElementById('login-fields').style.display  = isLogin?'block':'none';
+  toggleSignupSubmitState();
+}
+function toggleSignupSubmitState(){
+  const btn = document.getElementById('auth-submit-btn');
+  if(authMode === 'signup' && !document.getElementById('signup-privacy-check').checked){
+    btn.disabled = true; btn.style.opacity = '0.5'; btn.style.cursor = 'not-allowed';
   } else {
-    orders.forEach(o=>{
-      const d = new Date(o.created_at);
-      const key = d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});
-      buckets[key] = (buckets[key]||0)+1;
-    });
+    btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
   }
-  const entries = Object.entries(buckets);
-  const maxV = Math.max(1, ...entries.map(e=>e[1]));
-  document.getElementById('an-trend-chart').innerHTML = entries.length ? `
-    <div style="display:flex;align-items:flex-end;gap:4px;height:140px;overflow-x:auto">
-      ${entries.map(([label,val])=>`
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:28px">
-          <div style="font-size:10px;color:var(--text3);margin-bottom:2px">${val||''}</div>
-          <div style="width:18px;background:var(--accent);border-radius:3px 3px 0 0;height:${Math.max(2,(val/maxV)*100)}px"></div>
-          <div style="font-size:9px;color:var(--text3);margin-top:4px;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap">${label}</div>
-        </div>`).join('')}
-    </div>` : '<div style="color:var(--text3);font-size:13px">No orders in this range yet.</div>';
-
-  // Peak hours (all orders in range, grouped by hour of day regardless of bucket mode)
-  const hourCounts = new Array(24).fill(0);
-  orders.forEach(o=>{ hourCounts[new Date(o.created_at).getHours()]++; });
-  const maxH = Math.max(1, ...hourCounts);
-  document.getElementById('an-hours-chart').innerHTML = `
-    <div style="display:flex;align-items:flex-end;gap:3px;height:100px">
-      ${hourCounts.map((v,h)=>`
-        <div title="${h}:00 — ${v} orders" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
-          <div style="width:100%;background:var(--blue);border-radius:2px 2px 0 0;height:${Math.max(2,(v/maxH)*80)}px"></div>
-        </div>`).join('')}
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-top:4px"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span></div>
-  `;
-
-  // Best-selling items (from MENU_ITEMS sold column — reflects all-time; filtered by items in range for the range view)
-  const itemCounts = {};
-  orders.forEach(o=>{ (o.items||[]).forEach(i=>{ itemCounts[i.name] = (itemCounts[i.name]||0) + i.qty; }); });
-  const top = Object.entries(itemCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  document.getElementById('an-top-items').innerHTML = top.length ? top.map(([name,qty],i)=>`
-    <div style="display:flex;justify-content:space-between;padding:8px 0;${i<top.length-1?'border-bottom:1px solid var(--border)':''}">
-      <span>${i+1}. ${name}</span><span style="font-weight:700">${qty} sold</span>
-    </div>`).join('') : '<div style="color:var(--text3);font-size:13px;padding:8px 0">No sales in this range yet.</div>';
 }
 
-// ═══════════════════ CUSTOMERS ═══════════════════
-let CUSTOMERS_CACHE = [];
-async function loadAndRenderCustomers(){
-  const { data, error } = await sb.rpc('admin_list_customers', { p_token: adminSessionToken });
-  if(error){ console.error(error); return; }
-  CUSTOMERS_CACHE = data;
-  renderCustomers();
+async function handleAuth(){
+  if(authMode === 'signup'){
+    const email = document.getElementById('auth-email').value.trim().toLowerCase();
+    const pass  = document.getElementById('auth-pass').value;
+    const name  = document.getElementById('auth-name').value.trim();
+    const phone = document.getElementById('auth-phone').value.trim();
+    if(!email){ showToast('Please enter your email'); return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showToast('Please enter a valid email address'); return; }
+    if(!pass || pass.length < 6){ showToast('Password must be at least 6 characters'); return; }
+    if(!name){ showToast('Please enter your full name'); return; }
+    if(!document.getElementById('signup-privacy-check').checked){ showToast('Please agree to the Terms & Conditions and Privacy Policy to continue'); return; }
+    const { error } = await sb.rpc('customer_signup', { p_name: name, p_email: email, p_phone: phone, p_password: pass });
+    if(error){
+      if(error.message.includes('ACCOUNT_EXISTS')){ showToast('Account already exists. Please sign in.'); }
+      else { showToast('❌ '+error.message); }
+      return;
+    }
+    showToast('Account created! Please sign in now.');
+    setTimeout(()=>{ toggleAuth(); document.getElementById('login-identifier').value = email; }, 800);
+    return;
+  }
+  const identifier = document.getElementById('login-identifier').value.trim().toLowerCase();
+  const pass       = document.getElementById('login-pass').value;
+  if(!identifier){ showToast('Please enter your email or mobile number'); return; }
+  if(!pass){ showToast('Please enter your password'); return; }
+  const { data: rows, error: loginErr } = await sb.rpc('customer_login', { p_identifier: identifier, p_password: pass });
+  const acc = rows && rows[0];
+  if(loginErr || !acc){
+    if(loginErr && loginErr.message.includes('TOO_MANY_ATTEMPTS')){ showToast('Too many failed attempts. Please try again in 7 minutes.'); }
+    else if(loginErr && loginErr.message.includes('WRONG_PASSWORD')){ showToast('Incorrect password. Please try again.'); document.getElementById('login-pass').value=''; }
+    else { showToast('No account found with that email or mobile number.'); }
+    return;
+  }
+  isLoggedIn = true;
+  sessionToken = acc.token;
+  loggedInUser = { id: acc.id, name: acc.name, email: acc.email, phone: acc.phone };
+  saveSession(acc);
+  document.getElementById('auth-nav-label').textContent = acc.name.split(' ')[0];
+  document.getElementById('auth-nav-btn').querySelector('i').className = 'ti ti-user-circle';
+  document.getElementById('profile-name-display').textContent = acc.name;
+  document.getElementById('profile-email-display').textContent = acc.email;
+  showToast('Signed in successfully! 🎉');
+  document.getElementById('auth-submit-btn').textContent = '✓ Signed in';
+  subscribeToMyOrders();
+  renderOrders();
+  setTimeout(()=>{
+    if(pendingAction==='checkout'){ showView('menu'); setTimeout(()=>{ openCart(); }, 300); }
+    else if(pendingAction==='placeOrder'){ renderCheckout(); showView('checkout'); }
+    else { showView('menu'); }
+    pendingAction = null;
+  }, 1000);
 }
-function renderCustomers(){
-  const q = (document.getElementById('customer-search')?.value||'').toLowerCase();
-  const rows = CUSTOMERS_CACHE
-    .map(c => {
-      const theirOrders = ORDERS.filter(o => o.customer && (o.phone===c.phone || o.customer===c.name));
-      const spent = theirOrders.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+o.amount,0);
-      return { ...c, orderCount: theirOrders.length, spent };
+
+// Live order-status updates for the signed-in customer
+let myOrdersChannel = null;
+function subscribeToMyOrders(){
+  if(myOrdersChannel) sb.removeChannel(myOrdersChannel);
+  myOrdersChannel = sb.channel('my-orders-'+loggedInUser.id)
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: 'user_id=eq.'+loggedInUser.id }, payload => {
+      showToast(`Order ${payload.new.id} is now: ${payload.new.status} 🚀`);
+      renderOrders();
     })
-    .filter(c => !q || c.name.toLowerCase().includes(q) || (c.email||'').toLowerCase().includes(q) || (c.phone||'').toLowerCase().includes(q))
-    .sort((a,b)=>b.orderCount-a.orderCount);
-  document.getElementById('customers-body').innerHTML = rows.map(c => `
-    <div class="table-row" style="grid-template-columns:1fr 1fr 90px 90px 100px;cursor:pointer" onclick="openCustomerHistory('${c.id}')">
-      <div class="table-cell"><div style="font-weight:600;font-size:13px">${esc(c.name)}</div></div>
-      <div class="table-cell" style="font-size:12px;color:var(--text2)">${esc(c.email)}<br>${esc(c.phone)||'—'}</div>
-      <div class="table-cell">${c.orderCount}</div>
-      <div class="table-cell">₹${c.spent}</div>
-      <div class="table-cell">${c.orderCount>=3 ? '<span class="status-badge s-delivered">Regular</span>' : '<span style="color:var(--text3);font-size:12px">New</span>'}</div>
-    </div>
-  `).join('') || '<div style="padding:20px;color:var(--text3);text-align:center">No customers found.</div>';
+    .subscribe();
 }
-function openCustomerHistory(customerId){
-  const c = CUSTOMERS_CACHE.find(x=>x.id===customerId);
-  if(!c) return;
-  const theirOrders = ORDERS.filter(o => o.phone===c.phone || o.customer===c.name).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
-  document.getElementById('customer-history-body').innerHTML = `
-    <div style="margin-bottom:10px"><strong>${esc(c.name)}</strong><br><span style="color:var(--text2);font-size:12px">${esc(c.email)} · ${esc(c.phone)||'—'}</span></div>
-    ${theirOrders.map(o=>`
-      <div style="padding:8px 0;border-bottom:1px solid var(--border)">
-        <div style="display:flex;justify-content:space-between"><strong>${o.id}</strong><span>${statusBadge(o.status)}</span></div>
-        <div style="font-size:12px;color:var(--text2)">${o.date} · ₹${o.amount}</div>
-      </div>
-    `).join('') || '<div style="color:var(--text3);font-size:13px">No orders yet.</div>'}
-  `;
-  document.getElementById('customer-history-modal').classList.remove('hidden');
-}
-function closeCustomerHistory(){ document.getElementById('customer-history-modal').classList.add('hidden'); }
 
-// ═══════════════════ CSV EXPORT ═══════════════════
-function openExportModal(){ document.getElementById('export-modal').classList.remove('hidden'); }
-function closeExportModal(){ document.getElementById('export-modal').classList.add('hidden'); }
-function exportOrdersCSV(){
-  const from = document.getElementById('export-from').value;
-  const to = document.getElementById('export-to').value;
-  if(!from || !to){ toast('Select both from and to dates'); return; }
-  const fromD = new Date(from);
-  const toD = new Date(to+'T23:59:59');
-  const rows = ORDERS.filter(o => { const d=new Date(o.created_at); return d>=fromD && d<=toD; });
-  if(!rows.length){ toast('No orders found in that range'); return; }
-  const header = ['Order ID','Date','Time','Customer','Phone','Address','Items','Subtotal','Tax','Total','Status','Rider','OTP'];
-  const csvRows = rows.map(o => [
-    o.id, o.date, o.time, o.customer, o.phone, `"${(o.address||'').replace(/"/g,'""')}"`,
-    `"${o.items.map(i=>i.name+' x'+i.qty).join('; ').replace(/"/g,'""')}"`,
-    o.subtotal, o.tax, o.amount, o.status, o.rider||'—', o.otp||'—'
-  ]);
-  const csv = [header.join(','), ...csvRows.map(r=>r.join(','))].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `tildabite_orders_${from}_to_${to}.csv`;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  closeExportModal();
-  toast('CSV downloaded ✓');
+function handleAuthNavClick(){
+  if(isLoggedIn){ showView('profile'); setActive(document.querySelectorAll('.bottom-nav-item')[2]); }
+  else { showView('auth'); }
 }
+
+function signOut(){
+  if(sessionToken){ sb.rpc('logout', { p_token: sessionToken }); }
+  isLoggedIn = false;
+  sessionToken = null;
+  loggedInUser = { name: 'Guest', email: '' };
+  clearSession();
+  if(myOrdersChannel){ sb.removeChannel(myOrdersChannel); myOrdersChannel = null; }
+  cart = {};
+  updateCartUI();
+  document.getElementById('auth-nav-label').textContent = 'Sign in';
+  document.getElementById('auth-nav-btn').querySelector('i').className = 'ti ti-user';
+  document.getElementById('auth-email').value='';
+  document.getElementById('auth-pass').value='';
+  document.getElementById('login-identifier').value='';
+  document.getElementById('login-pass').value='';
+  showToast('Signed out successfully');
+  showView('auth');
+  setActive(document.querySelectorAll('.bottom-nav-item')[0]);
+}
+
+let toastTimer;
+function showToast(msg){
+  clearTimeout(toastTimer);
+  document.getElementById('toast-msg').textContent=msg;
+  document.getElementById('toast').classList.add('show');
+  toastTimer=setTimeout(()=>document.getElementById('toast').classList.remove('show'),2200);
+}
+
+function toggleTheme(){
+  isDark=!isDark;
+  document.body.classList.toggle('dark',isDark);
+  document.getElementById('theme-icon').className=isDark?'ti ti-sun':'ti ti-moon';
+}
+
+// Show skeleton on first load, then render menu
+showSkeleton();
+(async () => {
+  await loadSharedMenu();
+  applyFilters('');
+})();
+loadStoreSettings();
+restoreSession();
+renderOrders();
+toggleSignupSubmitState();
 </script>
-</html>
