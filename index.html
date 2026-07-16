@@ -95,6 +95,12 @@
   .qty-control{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:2px 8px}
   .qty-btn{background:none;border:none;color:var(--accent);cursor:pointer;font-size:16px;font-weight:700;width:24px;height:24px;display:flex;align-items:center;justify-content:center}
   .qty-num{font-size:13px;font-weight:600;min-width:16px;text-align:center}
+  .addcart-btn{background:var(--accent);border:none;color:#fff;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;transition:all 0.2s;box-shadow:0 3px 10px rgba(var(--accent-rgb),0.3);white-space:nowrap}
+  .addcart-btn:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 14px rgba(var(--accent-rgb),0.4)}
+  .addcart-btn i{font-size:14px}
+  .gocart-btn{background:var(--green);border:none;color:#fff;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;transition:all 0.2s;box-shadow:0 3px 10px rgba(22,163,74,0.3);white-space:nowrap}
+  .gocart-btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+  .gocart-btn i{font-size:14px}
   .veg-tag{display:inline-block;background:rgba(22,163,74,0.09);color:#16A34A;border:1px solid rgba(22,163,74,0.3);border-radius:6px;font-size:10px;font-weight:700;padding:2px 8px;margin-bottom:6px;letter-spacing:0.5px}
   .nonveg-tag{display:inline-block;background:rgba(220,38,38,0.08);color:#DC2626;border:1px solid rgba(220,38,38,0.25);border-radius:6px;font-size:10px;font-weight:700;padding:2px 8px;margin-bottom:6px;letter-spacing:0.5px}
 
@@ -745,8 +751,8 @@ async function saveDeliveryAddress(){
 }
 
 // ─── SUPABASE CONFIG ─────────────────────────────────────────
-const SUPABASE_URL = 'https://lfrizetfzlrqjdfmvfbd.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_9wruuPO4dvIAJLS9a5rHtA_DjpovXNS';
+const SUPABASE_URL = 'https://loyfgezloleupazlgnmw.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_vnyJlBniwJy0PnLbEtjDXA_v69j1Spu';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ─── MENU (live from Supabase) ───────────────────────────────
@@ -1000,8 +1006,8 @@ function renderMenu(items){
     const actionHtml = oos
       ? `<button class="add-btn" disabled style="background:var(--text3);cursor:not-allowed;box-shadow:none" title="Out of stock">×</button>`
       : qty===0
-        ? `<button class="add-btn" onclick="addItem(${item.id})">+</button>`
-        : `<div class="qty-control"><button class="qty-btn" onclick="removeItem(${item.id})">−</button><span class="qty-num">${qty}</span><button class="qty-btn" onclick="addItem(${item.id})"${rem<=0?' disabled style="opacity:0.4;cursor:not-allowed"':''}>+</button></div>`;
+        ? `<button class="addcart-btn" onclick="addItem(${item.id})"><i class="ti ti-shopping-cart-plus"></i> Add to Cart</button>`
+        : `<button class="gocart-btn" onclick="openCart()"><i class="ti ti-shopping-cart-check"></i> Go to Cart (${qty})</button>`;
     return `<div class="menu-card"${oos?' style="opacity:0.7"':''}>
       ${imgHtml}
       <div class="menu-card-body">
