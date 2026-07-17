@@ -170,7 +170,6 @@
   .status-delivered{background:var(--green-bg);color:var(--green)}
   .status-preparing{background:rgba(251,191,36,0.15);color:#fbbf24}
   .status-otw{background:var(--blue-bg);color:var(--blue)}
-  .status-cancelled{background:rgba(220,38,38,0.12);color:var(--red)}
   .order-items-list{font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.8}
   .order-footer{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--border)}
   .reorder-btn{background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
@@ -246,6 +245,9 @@
   .payment-label span{font-size:12px;color:var(--text2)}
   .pay-btn{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:16px;border-radius:var(--radius);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 18px rgba(var(--accent-rgb),0.32);transition:all 0.2s}
   .pay-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(var(--accent-rgb),0.4)}
+  .pay-btn:disabled{opacity:0.85;cursor:not-allowed;transform:none}
+  .btn-spinner{width:16px;height:16px;border:2.5px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;display:inline-block;animation:btnspin 0.7s linear infinite;flex-shrink:0}
+  @keyframes btnspin{to{transform:rotate(360deg)}}
 
   /* ── SKELETON LOADING ─────────────────────────────────────── */
   @keyframes shimmer{0%{background-position:-700px 0}100%{background-position:700px 0}}
@@ -1145,6 +1147,14 @@ function selectPay(el){
   el.querySelector('input').checked=true;
 }
 
+function setPayBtnLoading(btn, loading){
+  if(!btn) return;
+  btn.disabled = loading;
+  btn.innerHTML = loading
+    ? '<span class="btn-spinner"></span> Processing payment...'
+    : '<i class="ti ti-lock"></i> Place order securely';
+}
+
 async function placeOrder(){
   if(!isEffectivelyOpen()){ showToast("We're closed right now — opening at "+to12h(STORE_SETTINGS.opening_time)); showClosedOverlay(); return; }
   if(!requireAuth('placeOrder')) return;
@@ -1157,7 +1167,7 @@ async function placeOrder(){
   const itemsPayload = keys.map(k=>({ id: Number(k), qty: cart[k] }));
 
   const payBtn = document.getElementById('place-order-btn');
-  if(payBtn){ payBtn.disabled = true; payBtn.textContent = 'Please wait...'; }
+  setPayBtnLoading(payBtn, true);
 
   // Step 1: ask our server (Edge Function) to price the cart for real
   // and open a Razorpay order for that amount.
@@ -1170,7 +1180,7 @@ async function placeOrder(){
       ? 'Too many payment attempts — please wait a few minutes and try again'
       : (payData?.error || payErr.message || 'Could not start payment');
     showToast('❌ '+msg);
-    if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
+    setPayBtnLoading(payBtn, false);
     return;
   }
 
@@ -1197,17 +1207,15 @@ async function placeOrder(){
 
       if(verifyErr || verifyData?.error || !verifyData?.success){
         showToast('❌ Payment received but confirmation failed — contact support with payment ID: '+response.razorpay_payment_id);
-        if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
+        setPayBtnLoading(payBtn, false);
         return;
       }
 
       const order = verifyData.order;
       const otp = order.otp;
       showToast('Order placed! Your delivery OTP is: '+otp+' 🎉');
-      window._lastOtp = otp;
-      window._lastOrderId = order.id;
       cart={};updateCartUI();
-      if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
+      setPayBtnLoading(payBtn, false);
       await loadSharedMenu(); // stock/sold already decremented in DB via trigger
       applyFilters(document.getElementById('search-input').value.toLowerCase());
       await renderOrders();
@@ -1216,7 +1224,7 @@ async function placeOrder(){
     modal: {
       ondismiss: function(){
         // customer closed the Razorpay popup without paying
-        if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
+        setPayBtnLoading(payBtn, false);
         showToast('Payment cancelled');
       }
     }
@@ -1224,10 +1232,13 @@ async function placeOrder(){
 
   rzp.on('payment.failed', function(){
     showToast('❌ Payment failed — please try again');
-    if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
+    setPayBtnLoading(payBtn, false);
   });
 
-  if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
+  // NOTE: button intentionally stays disabled/loading here — it was
+  // previously being reset to enabled right before the Razorpay modal
+  // opened, so it never actually looked "loading" while payment was
+  // in progress. It's now reset only on success, failure, or dismiss.
   rzp.open();
 }
 
@@ -1246,13 +1257,20 @@ async function renderOrders(){
     total: o.total,
     otp: o.otp
   }));
+  // Build the OTP banner from the orders we actually fetched, not from a
+  // page-session-only variable — window._lastOtp gets wiped out on any
+  // refresh or re-login, which was why an older/previous order's OTP
+  // would silently stop showing even though the order was still active.
+  // Any order that's not delivered/cancelled and still has an OTP counts
+  // as "active"; the most recent one is shown up top.
+  const activeOtpOrder = myOrders.find(o => o.status!=='delivered' && o.status!=='cancelled' && o.otp);
   let otpBanner = '';
-  if(window._lastOtp && window._lastOrderId){
+  if(activeOtpOrder){
     otpBanner = `<div style="background:var(--green-bg);border:1px solid var(--green);border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
       <i class="ti ti-lock" style="font-size:22px;color:var(--green)"></i>
       <div>
-        <div style="font-size:12px;color:var(--green);font-weight:600;margin-bottom:2px">Delivery OTP for ${window._lastOrderId}</div>
-        <div style="font-size:26px;font-weight:800;letter-spacing:8px;color:var(--green)">${window._lastOtp}</div>
+        <div style="font-size:12px;color:var(--green);font-weight:600;margin-bottom:2px">Delivery OTP for ${activeOtpOrder.id}</div>
+        <div style="font-size:26px;font-weight:800;letter-spacing:8px;color:var(--green)">${activeOtpOrder.otp}</div>
         <div style="font-size:11px;color:var(--text2);margin-top:2px">Share this with your delivery rider to confirm delivery</div>
       </div>
     </div>`;
@@ -1262,16 +1280,11 @@ async function renderOrders(){
     return;
   }
   list.innerHTML = otpBanner + myOrders.map(o=>{
-    const statusMap = {
-      pending:   { cls:'status-preparing', label:'⏳ Order received' },
-      preparing: { cls:'status-preparing', label:'👨‍🍳 Preparing your food' },
-      otw:       { cls:'status-otw',       label:'🚴 On the way' },
-      delivered: { cls:'status-delivered', label:'✔ Delivered' },
-      cancelled: { cls:'status-cancelled', label:'✕ Cancelled' }
-    };
-    const st = statusMap[o.status] || { cls:'status-otw', label:o.status };
-    const statusCls = st.cls, statusLabel = st.label;
-    const otpTag = (o.status!=='delivered' && o.status!=='cancelled' && o.status!=='pending')?`<div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--accent)"><i class="ti ti-lock" style="font-size:12px"></i>OTP: ${o.otp}</div>`:'';
+    const statusCls = o.status==='delivered'?'status-delivered':o.status==='pending'?'status-preparing':'status-otw';
+    const statusLabel = o.status==='delivered'?'✔ Delivered':o.status==='pending'?'⏳ Pending':'🚴 On the way';
+    // OTP tag hides once an order is delivered (or cancelled — delivery
+    // never happens, so there's nothing to confirm with a code).
+    const otpTag = (o.status!=='delivered' && o.status!=='cancelled' && o.otp)?`<div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--accent)"><i class="ti ti-lock" style="font-size:12px"></i>OTP: ${o.otp}</div>`:'';
     return `<div class="order-card">
       <div class="order-card-header">
         <div><div style="font-size:15px;font-weight:700">${o.id}</div><div class="order-id">${o.date}</div></div>
