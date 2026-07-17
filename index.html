@@ -197,6 +197,23 @@
   .otp-mini-copy{background:var(--accent);border:none;color:#fff;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;transition:all 0.2s}
   .otp-mini-copy:hover{background:var(--accent-dark)}
   .otp-mini-copy.copied{background:var(--green)}
+  @keyframes otpPop{0%{transform:scale(0.4) translateY(6px);opacity:0}70%{transform:scale(1.08) translateY(0);opacity:1}100%{transform:scale(1) translateY(0);opacity:1}}
+  .otp-digit-box{animation:otpPop 0.38s cubic-bezier(.34,1.56,.64,1) backwards}
+  .otp-digit-box:nth-child(1){animation-delay:0.02s}
+  .otp-digit-box:nth-child(2){animation-delay:0.08s}
+  .otp-digit-box:nth-child(3){animation-delay:0.14s}
+  .otp-digit-box:nth-child(4){animation-delay:0.20s}
+  .otp-more-orders{font-size:11.5px;color:var(--text2);text-align:center;margin:-4px 0 14px;display:flex;align-items:center;justify-content:center;gap:6px}
+  .otp-more-orders i{font-size:13px;color:var(--text3)}
+  .otp-stepper{display:flex;align-items:center;gap:4px;margin-top:12px;position:relative}
+  .otp-step{display:flex;align-items:center;gap:6px;flex:1}
+  .otp-step-dot{width:9px;height:9px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:all 0.3s;box-shadow:none}
+  .otp-step-label{font-size:10px;font-weight:600;color:var(--text3);white-space:nowrap;transition:color 0.3s}
+  .otp-step-line{flex:1;height:2px;background:var(--border2);transition:background 0.3s}
+  .otp-step.done .otp-step-dot{background:var(--accent);box-shadow:0 0 0 3px rgba(var(--accent-rgb),0.18)}
+  .otp-step.done .otp-step-label{color:var(--accent)}
+  .otp-step.done .otp-step-line{background:var(--accent)}
+  .otp-step.current .otp-step-dot{background:var(--accent);box-shadow:0 0 0 4px rgba(var(--accent-rgb),0.22);animation:otpPulse 1.6s infinite}
 
   /* PROFILE */
   .profile-container{padding:20px;max-width:500px;margin:0 auto;padding-bottom:100px}
@@ -1297,12 +1314,26 @@ async function renderOrders(){
     otp: o.otp
   }));
 
-  // Show a prominent OTP hero card for every order that isn't delivered yet.
-  // This is driven by live order status from the DB — not session state —
-  // so it correctly disappears the moment an order is marked delivered,
-  // and correctly reappears on reload/re-login as long as delivery is pending.
+  // Show a prominent OTP hero card for the most recent order that isn't
+  // delivered yet. Driven by live order status from the DB — not session
+  // state — so it correctly disappears the moment that order is marked
+  // delivered, and correctly reappears on reload/re-login while pending.
   const activeOtpOrders = myOrders.filter(o => o.status !== 'delivered' && o.otp);
-  const otpBanner = activeOtpOrders.map(o => `
+  let otpBanner = '';
+  if(activeOtpOrders.length){
+    const o = activeOtpOrders[0]; // most recent, since myOrders is newest-first
+    const steps = [
+      { key:'pending',   label:'Preparing' },
+      { key:'otw',       label:'On the way' },
+      { key:'delivered', label:'Delivered' }
+    ];
+    const currentIdx = o.status==='pending' ? 0 : 1; // anything besides pending/delivered = out for delivery
+    const stepperHTML = steps.map((s,i)=>{
+      const cls = i < currentIdx ? 'done' : i === currentIdx ? 'current' : '';
+      const line = i < steps.length-1 ? `<div class="otp-step-line ${i<currentIdx?'done':''}" style="${i<currentIdx?'background:var(--accent)':''}"></div>` : '';
+      return `<div class="otp-step ${cls}"><div class="otp-step-dot"></div><div class="otp-step-label">${s.label}</div></div>${line}`;
+    }).join('');
+    otpBanner = `
     <div class="otp-hero">
       <div class="otp-hero-top">
         <div class="otp-hero-label"><i class="ti ti-lock"></i>Delivery OTP</div>
@@ -1312,9 +1343,13 @@ async function renderOrders(){
         <div class="otp-digits">${otpDigitBoxes(o.otp, 'otp-digit-box')}</div>
         <button class="otp-copy-btn" onclick="copyOtp('${o.otp}', this)"><i class="ti ti-copy"></i> Copy</button>
       </div>
+      <div class="otp-stepper">${stepperHTML}</div>
       <div class="otp-hero-hint"><i class="ti ti-info-circle"></i>Share this only with your delivery rider when your order arrives. It stays active until the order is delivered.</div>
-    </div>
-  `).join('');
+    </div>`;
+    if(activeOtpOrders.length > 1){
+      otpBanner += `<div class="otp-more-orders"><i class="ti ti-package"></i>You have ${activeOtpOrders.length - 1} more active order${activeOtpOrders.length-1>1?'s':''} — OTPs shown below on each</div>`;
+    }
+  }
 
   if(myOrders.length===0){
     list.innerHTML=otpBanner+'<div style="text-align:center;padding:60px 20px;color:var(--text3)"><i class="ti ti-package" style="font-size:48px;display:block;margin-bottom:12px"></i>No orders yet<br><span style="font-size:12px;margin-top:6px;display:block">Your orders will appear here once you place one</span></div>';
