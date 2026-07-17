@@ -69,8 +69,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .filter-btn:hover,.filter-btn.active{border-color:var(--accent);color:var(--accent);background:var(--abg)}
 
 .orders-table{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden}
-.table-head{display:grid;grid-template-columns:100px 1fr 90px 100px 110px 230px;gap:0;background:var(--card);border-bottom:1px solid var(--border);padding:10px 16px;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
-.table-row{display:grid;grid-template-columns:100px 1fr 90px 100px 110px 230px;gap:0;padding:12px 16px;border-bottom:1px solid var(--border);align-items:center;transition:background 0.15s}
+.table-head{display:grid;grid-template-columns:100px 1fr 90px 110px 260px;gap:0;background:var(--card);border-bottom:1px solid var(--border);padding:10px 16px;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.table-row{display:grid;grid-template-columns:100px 1fr 90px 110px 260px;gap:0;padding:12px 16px;border-bottom:1px solid var(--border);align-items:center;transition:background 0.15s}
 .table-row:last-child{border-bottom:none}
 .table-row:hover{background:var(--card)}
 .table-cell{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px}
@@ -228,7 +228,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
         </div>
         <div class="section-head"><h2>Recent orders</h2><button class="filter-btn" onclick="showView('orders',document.querySelectorAll('.nav-item')[1])">View all</button></div>
         <div class="orders-table">
-          <div class="table-head"><div>Order ID</div><div>Customer</div><div>Amount</div><div>Status</div><div>Rider</div><div>Action</div></div>
+          <div class="table-head"><div>Order ID</div><div>Customer</div><div>Amount</div><div>Status</div><div>Action</div></div>
           <div id="recent-orders-body"></div>
         </div>
       </div>
@@ -261,7 +261,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
           <button class="tb-btn" onclick="openExportModal()"><i class="ti ti-download" style="font-size:14px"></i> Export CSV</button>
         </div>
         <div class="orders-table" style="margin-top:12px">
-          <div class="table-head"><div>Order ID</div><div>Customer</div><div>Amount</div><div>Status</div><div>Rider</div><div>Action</div></div>
+          <div class="table-head"><div>Order ID</div><div>Customer</div><div>Amount</div><div>Status</div><div>Action</div></div>
           <div id="all-orders-body"></div>
         </div>
         <div class="modal-bg hidden" id="assign-modal">
@@ -691,7 +691,7 @@ function actionCell(o){
   return '<span style="font-size:11px;color:var(--text3)">Completed</span>';
 }
 function renderOrderRows(orders,targetId){
-  document.getElementById(targetId).innerHTML=orders.map(o=>'<div class="table-row" id="row-'+o.id+'"><div class="table-cell order-id-cell">'+o.id+'</div><div class="table-cell" style="overflow:hidden"><div style="font-weight:600;font-size:13px">'+esc(o.customer)+(o.lat&&o.lng?' <i class="ti ti-map-pin-check" style="font-size:12px;color:var(--green)" title="Precise location pinned"></i>':'')+'</div><div style="font-size:11px;color:var(--text3)">'+o.time+'</div></div><div class="table-cell">₹'+o.amount+'</div><div class="table-cell">'+statusBadge(o.status)+'</div><div class="table-cell" style="font-size:12px;color:var(--text2)">'+(o.rider||'—')+'</div><div class="table-cell" style="display:flex;gap:6px;flex-wrap:wrap;overflow:visible;white-space:normal;text-overflow:clip">'+actionCell(o)+' <button class="tb-btn" style="padding:4px 10px;font-size:11px" onclick="openOrderDetails(\''+o.id+'\')"><i class="ti ti-receipt" style="font-size:12px"></i> View</button> <button class="tb-btn" style="padding:4px 10px;font-size:11px" onclick="printOrderInvoice(\''+o.id+'\')"><i class="ti ti-printer" style="font-size:12px"></i> Print</button></div></div>').join('');
+  document.getElementById(targetId).innerHTML=orders.map(o=>'<div class="table-row" id="row-'+o.id+'"><div class="table-cell order-id-cell">'+o.id+'</div><div class="table-cell" style="overflow:hidden"><div style="font-weight:600;font-size:13px">'+esc(o.customer)+(o.lat&&o.lng?' <i class="ti ti-map-pin-check" style="font-size:12px;color:var(--green)" title="Precise location pinned"></i>':'')+'</div><div style="font-size:11px;color:var(--text3)">'+o.time+'</div></div><div class="table-cell">₹'+o.amount+'</div><div class="table-cell">'+statusBadge(o.status)+'</div><div class="table-cell" style="display:flex;gap:6px;flex-wrap:wrap;overflow:visible;white-space:normal;text-overflow:clip">'+actionCell(o)+' <button class="tb-btn" style="padding:4px 10px;font-size:11px" onclick="openOrderDetails(\''+o.id+'\')"><i class="ti ti-receipt" style="font-size:12px"></i> View</button> <button class="tb-btn" style="padding:4px 10px;font-size:11px" onclick="printOrderInvoice(\''+o.id+'\')"><i class="ti ti-printer" style="font-size:12px"></i> Print</button></div></div>').join('');
 }
 function renderRecentOrders(){renderOrderRows(ORDERS.slice(0,5),'recent-orders-body');}
 function passesDateFilter(o){
