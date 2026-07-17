@@ -224,7 +224,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
           <div class="stat-card s-orange"><div class="stat-label">Total orders today</div><div class="stat-val" id="ov-total">0</div><div class="stat-sub" id="ov-total-sub">No orders yet</div></div>
           <div class="stat-card s-green"><div class="stat-label">Revenue today</div><div class="stat-val" id="ov-revenue">₹0</div><div class="stat-sub">—</div></div>
           <div class="stat-card s-blue"><div class="stat-label">Active riders</div><div class="stat-val" id="ov-riders">0</div><div class="stat-sub">—</div></div>
-          <div class="stat-card s-amber"><div class="stat-label">Pending orders</div><div class="stat-val" id="ov-pending">0</div><div class="stat-sub">Awaiting accept / deny</div></div>
+          <div class="stat-card s-amber"><div class="stat-label">Pending orders</div><div class="stat-val" id="ov-pending">0</div><div class="stat-sub">Need rider assignment</div></div>
         </div>
         <div class="section-head"><h2>Recent orders</h2><button class="filter-btn" onclick="showView('orders',document.querySelectorAll('.nav-item')[1])">View all</button></div>
         <div class="orders-table">
@@ -274,19 +274,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
             <div class="modal-actions">
               <button class="btn-cancel" onclick="closeModal()">Cancel</button>
               <button class="btn-confirm" onclick="confirmAssign()">Assign & generate OTP</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- DENY ORDER — DOUBLE CONFIRMATION -->
-        <div class="modal-bg hidden" id="deny-modal">
-          <div class="modal" style="max-width:380px;text-align:center">
-            <div style="font-size:40px;margin-bottom:8px">⚠️</div>
-            <h3 id="deny-modal-title" style="text-align:center;font-size:16px">Deny this order?</h3>
-            <p id="deny-modal-body" style="text-align:center">The customer will be notified their order was declined and it will be cancelled.</p>
-            <div class="modal-actions" style="justify-content:center">
-              <button class="btn-cancel" onclick="closeDenyModal()">Cancel</button>
-              <button class="btn-confirm" id="deny-modal-btn" style="background:var(--red);border-color:var(--red)" onclick="denyModalNext()">Continue</button>
             </div>
           </div>
         </div>
@@ -394,25 +381,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
             <label for="settings-auto-reopen" style="font-size:13px">Auto re-open once opening time is reached</label>
           </div>
           <button class="btn-confirm" style="width:100%;justify-content:center" onclick="saveStoreSettings()"><i class="ti ti-device-floppy" style="font-size:13px"></i> Save settings</button>
-        </div>
-
-        <div class="section-head" style="margin-top:24px"><h2>Order acceptance</h2></div>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;max-width:520px">
-          <div style="margin-bottom:14px">
-            <div style="font-weight:700;font-size:14px">Auto-accept orders</div>
-            <div style="font-size:12px;color:var(--text3);margin-top:2px">If a new order isn't manually Accepted or Denied within this time, it's automatically accepted and moved to "Preparing".</div>
-          </div>
-          <div class="modal-field"><label>Auto-accept after</label>
-            <select id="settings-auto-accept" style="width:100%;padding:8px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px">
-              <option value="0">Off — always accept manually</option>
-              <option value="10">10 minutes</option>
-              <option value="30">30 minutes</option>
-              <option value="60">1 hour</option>
-              <option value="300">5 hours</option>
-              <option value="720">12 hours</option>
-            </select>
-          </div>
-          <button class="btn-confirm" style="width:100%;justify-content:center" onclick="saveAutoAccept()"><i class="ti ti-device-floppy" style="font-size:13px"></i> Save timer</button>
         </div>
       </div>
 
@@ -546,7 +514,7 @@ async function adminLogin(){
   document.getElementById('admin-login-screen').style.display='none';
   document.getElementById('admin-shell').style.display='flex';
   adminRefreshOrders(); adminLoadRiders(); adminLoadNotifications(); renderMenuMgmt();
-  loadStoreSettings(); runAutoAcceptSweep();
+  loadStoreSettings();
   adminSubscribeRealtime();
   toast('Welcome back, Admin! 👋');
 }
@@ -574,26 +542,8 @@ async function loadStoreSettings(){
   document.getElementById('settings-closing-time').value = data.closing_time;
   document.getElementById('settings-phone').value = data.phone || '';
   document.getElementById('settings-auto-reopen').checked = data.auto_reopen;
-  document.getElementById('settings-auto-accept').value = String(data.auto_accept_minutes || 0);
   updateStoreStatusPill();
 }
-async function saveAutoAccept(){
-  const minutes = parseInt(document.getElementById('settings-auto-accept').value, 10);
-  const { error } = await sb.rpc('admin_set_auto_accept_minutes', { p_token: adminSessionToken, p_minutes: minutes });
-  if(error){ toast('❌ '+error.message); return; }
-  toast('Auto-accept timer saved!');
-  loadStoreSettings();
-}
-// Sweeps stale pending orders into "preparing" per the auto-accept timer.
-// Runs on load + every 30s while the admin panel stays open.
-async function runAutoAcceptSweep(){
-  if(!adminSessionToken) return;
-  try{
-    const { data, error } = await sb.rpc('process_auto_accept');
-    if(!error && data > 0){ toast(data+' order(s) auto-accepted.'); adminRefreshOrders(); }
-  }catch(e){ /* silent — non-critical background sweep */ }
-}
-setInterval(runAutoAcceptSweep, 30000);
 function updateStoreStatusPill(){
   const pill = document.getElementById('store-status-pill');
   const txt = document.getElementById('store-status-text');
@@ -736,8 +686,7 @@ function statusBadge(s){
   return map[s]||s;
 }
 function actionCell(o){
-  if(o.status==='pending')return '<button class="tb-btn" style="border-color:var(--gborder);color:var(--green)" onclick="acceptOrder(\''+o.id+'\')"><i class="ti ti-check" style="font-size:12px"></i> Accept</button> <button class="tb-btn" style="border-color:var(--rborder);color:var(--red)" onclick="openDenyModal(\''+o.id+'\')"><i class="ti ti-x" style="font-size:12px"></i> Deny</button>';
-  if(o.status==='preparing')return '<button class="assign-btn" onclick="openAssign(\''+o.id+'\')"><i class="ti ti-user-plus" style="font-size:12px"></i> Assign rider</button>';
+  if(o.status==='pending')return '<button class="assign-btn" onclick="openAssign(\''+o.id+'\')"><i class="ti ti-user-plus" style="font-size:12px"></i> Assign rider</button>';
   if(o.status==='otw')return '<span class="assigned-pill"><i class="ti ti-circle-check" style="font-size:12px"></i>'+o.rider+'</span>';
   return '<span style="font-size:11px;color:var(--text3)">Completed</span>';
 }
@@ -878,80 +827,6 @@ async function confirmAssign(){
   closeModal();
   toast('Rider assigned! Customer OTP is visible on their orders page.');
   adminRefreshOrders();
-}
-
-// ─── ACCEPT / DENY (pending → preparing / cancelled) ───────────────
-async function acceptOrder(orderId){
-  const { error } = await sb.rpc('admin_accept_order', { p_token: adminSessionToken, p_order_id: orderId });
-  if(error){ toast('❌ '+error.message); return; }
-  toast('Order accepted — printing kitchen ticket.');
-  printKOT(orderId);
-  adminRefreshOrders();
-}
-
-let denyOrderId = null, denyStage = 1;
-function openDenyModal(orderId){
-  denyOrderId = orderId; denyStage = 1;
-  document.getElementById('deny-modal-title').textContent = 'Deny order '+orderId+'?';
-  document.getElementById('deny-modal-body').textContent = 'The customer will be notified their order was declined and it will be cancelled.';
-  document.getElementById('deny-modal-btn').textContent = 'Continue';
-  document.getElementById('deny-modal').classList.remove('hidden');
-}
-function denyModalNext(){
-  if(denyStage===1){
-    denyStage=2;
-    document.getElementById('deny-modal-title').textContent = 'Are you absolutely sure?';
-    document.getElementById('deny-modal-body').textContent = 'This will permanently cancel order '+denyOrderId+'. This cannot be undone.';
-    document.getElementById('deny-modal-btn').textContent = 'Yes, deny permanently';
-    return;
-  }
-  confirmDenyOrder();
-}
-async function confirmDenyOrder(){
-  const id = denyOrderId;
-  closeDenyModal();
-  const { error } = await sb.rpc('admin_deny_order', { p_token: adminSessionToken, p_order_id: id });
-  if(error){ toast('❌ '+error.message); return; }
-  toast('Order denied & cancelled.');
-  adminRefreshOrders();
-}
-function closeDenyModal(){
-  document.getElementById('deny-modal').classList.add('hidden');
-  denyOrderId=null; denyStage=1;
-}
-
-// ─── KITCHEN ORDER TICKET (KOT) — items only, no prices/address ────
-function printKOT(orderId){
-  const o = ORDERS.find(x=>x.id===orderId);
-  if(!o) return;
-  const itemsRows = o.items.map(i=>`<tr><td>${esc(i.name)}</td><td style="text-align:center">×${i.qty}</td></tr>`).join('');
-  const win = window.open('', '_blank', 'width=380,height=560');
-  win.document.write(`
-    <html><head><title>KOT — ${o.id}</title>
-    <style>
-      body{font-family:'Courier New',monospace;padding:16px;font-size:14px;color:#000}
-      h2{text-align:center;margin-bottom:0;letter-spacing:1px}
-      .sub{text-align:center;font-size:11px;margin-bottom:12px;letter-spacing:1px;text-transform:uppercase}
-      table{width:100%;border-collapse:collapse;margin:10px 0}
-      td{padding:6px 2px;font-size:15px;border-bottom:1px dashed #ccc}
-      hr{border:none;border-top:1px dashed #000;margin:8px 0}
-      .row{display:flex;justify-content:space-between;font-size:12px}
-      @media print{ .no-print{display:none} }
-    </style></head><body>
-      <h2>Kitchen Ticket</h2>
-      <div class="sub">${o.id}</div>
-      <hr>
-      <div class="row"><span>Time</span><span>${o.date} · ${o.time}</span></div>
-      <hr>
-      <table>${itemsRows}</table>
-      <hr>
-      <div class="no-print" style="text-align:center;margin-top:14px">
-        <button onclick="window.print()" style="padding:8px 18px;font-size:12px;cursor:pointer">Print</button>
-      </div>
-    </body></html>
-  `);
-  win.document.close();
-  win.focus();
 }
 function populateRiderSelect(){ const sel=document.getElementById('rider-select'); recomputeRiderOrderCounts(); sel.innerHTML='<option value="">Choose a rider...</option>'+RIDERS.map(r=>'<option value="'+r.id+'">'+r.name+' (⭐'+r.rating+')'+(r.orders>0?' — '+r.orders+' active':' — free')+'</option>').join(''); }
 function renderRiders(){ document.getElementById('riders-grid').innerHTML=RIDERS.map(r=>'<div class="rider-card"><div class="rider-avatar">'+r.name.split(' ').map(w=>w[0]).join('')+'</div><div class="rider-name">'+r.name+'</div><div class="rider-phone"><i class="ti ti-phone" style="font-size:12px;margin-right:4px"></i>'+r.phone+'</div><div class="rider-stats"><div class="r-stat"><div class="r-stat-val">'+r.deliveries+'</div><div class="r-stat-label">Deliveries</div></div><div class="r-stat"><div class="r-stat-val">'+r.rating+'</div><div class="r-stat-label">Rating</div></div><div class="r-stat"><div class="r-stat-val">'+r.orders+'</div><div class="r-stat-label">Active</div></div></div><span class="rider-status '+(r.orders>0?'r-busy':'r-available')+'"><i class="ti ti-circle-filled" style="font-size:8px"></i>'+(r.orders>0?r.orders+' order'+(r.orders>1?'s':'')+' in progress':'No active orders')+'</span></div>').join(''); }
