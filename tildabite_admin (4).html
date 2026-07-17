@@ -794,12 +794,10 @@ function printOrderInvoice(orderId){
       <hr>
       <div class="row"><span>Order ID</span><span>${o.id}</span></div>
       <div class="row"><span>Date</span><span>${o.date} · ${o.time}</span></div>
-      <div class="row"><span>Status</span><span>${o.status}</span></div>
       <hr>
       <div><strong>Customer:</strong> ${esc(o.customer)}</div>
       <div><strong>Phone:</strong> ${esc(o.phone)}</div>
       <div><strong>Address:</strong> ${esc(o.address)}</div>
-      <div><strong>Rider:</strong> ${o.rider || 'Not assigned'}</div>
       <hr>
       <table>
         <tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Amt</th></tr>
@@ -810,8 +808,6 @@ function printOrderInvoice(orderId){
       <div class="row"><span>CGST</span><span>₹${cgst}</span></div>
       <div class="row"><span>SGST</span><span>₹${sgst}</span></div>
       <div class="row total"><span>Total</span><span>₹${o.amount}</span></div>
-      <hr>
-      <div class="row"><span>Delivery OTP</span><span>${o.otp || '—'}</span></div>
       <hr>
       <div style="text-align:center;font-size:11px;margin-top:10px">Thank you for ordering with TildaBite!</div>
       <div class="no-print" style="text-align:center;margin-top:16px">
