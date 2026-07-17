@@ -174,6 +174,30 @@
   .order-footer{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--border)}
   .reorder-btn{background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
 
+  /* DELIVERY OTP UI */
+  @keyframes otpPulse{0%,100%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),0.35)}50%{box-shadow:0 0 0 6px rgba(var(--accent-rgb),0)}}
+  .otp-hero{background:linear-gradient(135deg,var(--accent-bg),var(--green-bg) 130%);border:1.5px solid var(--accent);border-radius:16px;padding:16px 18px;margin-bottom:14px;position:relative;overflow:hidden}
+  .otp-hero::before{content:'';position:absolute;top:-36px;right:-36px;width:120px;height:120px;background:radial-gradient(circle,rgba(var(--accent-rgb),0.18),transparent 70%);border-radius:50%;pointer-events:none}
+  .otp-hero-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;position:relative}
+  .otp-hero-label{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:0.6px}
+  .otp-hero-label i{font-size:15px;animation:otpPulse 2s infinite;border-radius:50%}
+  .otp-hero-order{font-size:11px;color:var(--text3);font-weight:600;background:var(--surface);padding:3px 9px;border-radius:20px;border:1px solid var(--border2)}
+  .otp-hero-body{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;position:relative}
+  .otp-digits{display:flex;gap:7px}
+  .otp-digit-box{width:36px;height:44px;background:var(--surface);border:2px solid var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:800;color:var(--accent);box-shadow:0 2px 8px rgba(var(--accent-rgb),0.18)}
+  .otp-copy-btn{background:var(--accent);color:#fff;border:none;padding:9px 16px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all 0.2s;box-shadow:0 3px 10px rgba(var(--accent-rgb),0.3)}
+  .otp-copy-btn:hover{background:var(--accent-dark);transform:translateY(-1px)}
+  .otp-copy-btn.copied{background:var(--green);box-shadow:0 3px 10px rgba(22,163,74,0.3)}
+  .otp-hero-hint{font-size:11.5px;color:var(--text2);line-height:1.4;margin-top:10px;display:flex;align-items:center;gap:6px;position:relative}
+  .otp-hero-hint i{font-size:13px;color:var(--text3)}
+  .otp-mini{margin-top:10px;display:inline-flex;align-items:center;gap:9px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:10px;padding:6px 8px 6px 12px}
+  .otp-mini-label{font-size:11px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:5px}
+  .otp-mini-digits{display:flex;gap:3px}
+  .otp-mini-digit{font-size:13px;font-weight:800;color:var(--accent);background:var(--surface);border:1px solid var(--accent);border-radius:5px;width:20px;height:23px;display:flex;align-items:center;justify-content:center}
+  .otp-mini-copy{background:var(--accent);border:none;color:#fff;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;transition:all 0.2s}
+  .otp-mini-copy:hover{background:var(--accent-dark)}
+  .otp-mini-copy.copied{background:var(--green)}
+
   /* PROFILE */
   .profile-container{padding:20px;max-width:500px;margin:0 auto;padding-bottom:100px}
   .profile-header{background:linear-gradient(145deg,#FFF0E6,#FFF8F3);border:1px solid var(--border);border-radius:18px;padding:28px;text-align:center;margin-bottom:16px}
@@ -245,9 +269,6 @@
   .payment-label span{font-size:12px;color:var(--text2)}
   .pay-btn{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:16px;border-radius:var(--radius);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 18px rgba(var(--accent-rgb),0.32);transition:all 0.2s}
   .pay-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(var(--accent-rgb),0.4)}
-  .pay-btn:disabled{opacity:0.85;cursor:not-allowed;transform:none}
-  .btn-spinner{width:16px;height:16px;border:2.5px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;display:inline-block;animation:btnspin 0.7s linear infinite;flex-shrink:0}
-  @keyframes btnspin{to{transform:rotate(360deg)}}
 
   /* ── SKELETON LOADING ─────────────────────────────────────── */
   @keyframes shimmer{0%{background-position:-700px 0}100%{background-position:700px 0}}
@@ -1147,14 +1168,6 @@ function selectPay(el){
   el.querySelector('input').checked=true;
 }
 
-function setPayBtnLoading(btn, loading){
-  if(!btn) return;
-  btn.disabled = loading;
-  btn.innerHTML = loading
-    ? '<span class="btn-spinner"></span> Processing payment...'
-    : '<i class="ti ti-lock"></i> Place order securely';
-}
-
 async function placeOrder(){
   if(!isEffectivelyOpen()){ showToast("We're closed right now — opening at "+to12h(STORE_SETTINGS.opening_time)); showClosedOverlay(); return; }
   if(!requireAuth('placeOrder')) return;
@@ -1167,7 +1180,7 @@ async function placeOrder(){
   const itemsPayload = keys.map(k=>({ id: Number(k), qty: cart[k] }));
 
   const payBtn = document.getElementById('place-order-btn');
-  setPayBtnLoading(payBtn, true);
+  if(payBtn){ payBtn.disabled = true; payBtn.textContent = 'Please wait...'; }
 
   // Step 1: ask our server (Edge Function) to price the cart for real
   // and open a Razorpay order for that amount.
@@ -1180,7 +1193,7 @@ async function placeOrder(){
       ? 'Too many payment attempts — please wait a few minutes and try again'
       : (payData?.error || payErr.message || 'Could not start payment');
     showToast('❌ '+msg);
-    setPayBtnLoading(payBtn, false);
+    if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
     return;
   }
 
@@ -1207,15 +1220,17 @@ async function placeOrder(){
 
       if(verifyErr || verifyData?.error || !verifyData?.success){
         showToast('❌ Payment received but confirmation failed — contact support with payment ID: '+response.razorpay_payment_id);
-        setPayBtnLoading(payBtn, false);
+        if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
         return;
       }
 
       const order = verifyData.order;
       const otp = order.otp;
       showToast('Order placed! Your delivery OTP is: '+otp+' 🎉');
+      window._lastOtp = otp;
+      window._lastOrderId = order.id;
       cart={};updateCartUI();
-      setPayBtnLoading(payBtn, false);
+      if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
       await loadSharedMenu(); // stock/sold already decremented in DB via trigger
       applyFilters(document.getElementById('search-input').value.toLowerCase());
       await renderOrders();
@@ -1224,7 +1239,7 @@ async function placeOrder(){
     modal: {
       ondismiss: function(){
         // customer closed the Razorpay popup without paying
-        setPayBtnLoading(payBtn, false);
+        if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
         showToast('Payment cancelled');
       }
     }
@@ -1232,14 +1247,38 @@ async function placeOrder(){
 
   rzp.on('payment.failed', function(){
     showToast('❌ Payment failed — please try again');
-    setPayBtnLoading(payBtn, false);
+    if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
   });
 
-  // NOTE: button intentionally stays disabled/loading here — it was
-  // previously being reset to enabled right before the Razorpay modal
-  // opened, so it never actually looked "loading" while payment was
-  // in progress. It's now reset only on success, failure, or dismiss.
+  if(payBtn){ payBtn.disabled = false; payBtn.textContent = 'Place Order'; }
   rzp.open();
+}
+
+// Builds a row of individual boxed digits for an OTP, e.g. 1 2 3 4
+function otpDigitBoxes(otp, boxCls){
+  return String(otp).split('').map(d=>`<div class="${boxCls}">${d}</div>`).join('');
+}
+
+// Copies an OTP to clipboard and flips the clicked button to a "Copied" state briefly
+async function copyOtp(otp, btnEl){
+  try{
+    await navigator.clipboard.writeText(String(otp));
+  }catch(e){
+    // Fallback for browsers/contexts without clipboard API access
+    const ta = document.createElement('textarea');
+    ta.value = String(otp);
+    ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); }catch(e2){}
+    document.body.removeChild(ta);
+  }
+  showToast('OTP copied! 📋');
+  if(btnEl){
+    const original = btnEl.innerHTML;
+    btnEl.classList.add('copied');
+    btnEl.innerHTML = btnEl.classList.contains('otp-mini-copy') ? '<i class="ti ti-check"></i>' : '<i class="ti ti-check"></i> Copied';
+    setTimeout(()=>{ btnEl.classList.remove('copied'); btnEl.innerHTML = original; }, 1600);
+  }
 }
 
 async function renderOrders(){
@@ -1257,24 +1296,26 @@ async function renderOrders(){
     total: o.total,
     otp: o.otp
   }));
-  // Build the OTP banner from the orders we actually fetched, not from a
-  // page-session-only variable — window._lastOtp gets wiped out on any
-  // refresh or re-login, which was why an older/previous order's OTP
-  // would silently stop showing even though the order was still active.
-  // Any order that's not delivered/cancelled and still has an OTP counts
-  // as "active"; the most recent one is shown up top.
-  const activeOtpOrder = myOrders.find(o => o.status!=='delivered' && o.status!=='cancelled' && o.otp);
-  let otpBanner = '';
-  if(activeOtpOrder){
-    otpBanner = `<div style="background:var(--green-bg);border:1px solid var(--green);border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
-      <i class="ti ti-lock" style="font-size:22px;color:var(--green)"></i>
-      <div>
-        <div style="font-size:12px;color:var(--green);font-weight:600;margin-bottom:2px">Delivery OTP for ${activeOtpOrder.id}</div>
-        <div style="font-size:26px;font-weight:800;letter-spacing:8px;color:var(--green)">${activeOtpOrder.otp}</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:2px">Share this with your delivery rider to confirm delivery</div>
+
+  // Show a prominent OTP hero card for every order that isn't delivered yet.
+  // This is driven by live order status from the DB — not session state —
+  // so it correctly disappears the moment an order is marked delivered,
+  // and correctly reappears on reload/re-login as long as delivery is pending.
+  const activeOtpOrders = myOrders.filter(o => o.status !== 'delivered' && o.otp);
+  const otpBanner = activeOtpOrders.map(o => `
+    <div class="otp-hero">
+      <div class="otp-hero-top">
+        <div class="otp-hero-label"><i class="ti ti-lock"></i>Delivery OTP</div>
+        <div class="otp-hero-order">${o.id}</div>
       </div>
-    </div>`;
-  }
+      <div class="otp-hero-body">
+        <div class="otp-digits">${otpDigitBoxes(o.otp, 'otp-digit-box')}</div>
+        <button class="otp-copy-btn" onclick="copyOtp('${o.otp}', this)"><i class="ti ti-copy"></i> Copy</button>
+      </div>
+      <div class="otp-hero-hint"><i class="ti ti-info-circle"></i>Share this only with your delivery rider when your order arrives. It stays active until the order is delivered.</div>
+    </div>
+  `).join('');
+
   if(myOrders.length===0){
     list.innerHTML=otpBanner+'<div style="text-align:center;padding:60px 20px;color:var(--text3)"><i class="ti ti-package" style="font-size:48px;display:block;margin-bottom:12px"></i>No orders yet<br><span style="font-size:12px;margin-top:6px;display:block">Your orders will appear here once you place one</span></div>';
     return;
@@ -1282,9 +1323,11 @@ async function renderOrders(){
   list.innerHTML = otpBanner + myOrders.map(o=>{
     const statusCls = o.status==='delivered'?'status-delivered':o.status==='pending'?'status-preparing':'status-otw';
     const statusLabel = o.status==='delivered'?'✔ Delivered':o.status==='pending'?'⏳ Pending':'🚴 On the way';
-    // OTP tag hides once an order is delivered (or cancelled — delivery
-    // never happens, so there's nothing to confirm with a code).
-    const otpTag = (o.status!=='delivered' && o.status!=='cancelled' && o.otp)?`<div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--accent)"><i class="ti ti-lock" style="font-size:12px"></i>OTP: ${o.otp}</div>`:'';
+    const otpTag = o.status!=='delivered'?`<div class="otp-mini">
+        <div class="otp-mini-label"><i class="ti ti-lock" style="font-size:12px"></i>OTP</div>
+        <div class="otp-mini-digits">${otpDigitBoxes(o.otp, 'otp-mini-digit')}</div>
+        <button class="otp-mini-copy" onclick="copyOtp('${o.otp}', this)" title="Copy OTP"><i class="ti ti-copy" style="font-size:12px"></i></button>
+      </div>`:'';
     return `<div class="order-card">
       <div class="order-card-header">
         <div><div style="font-size:15px;font-weight:700">${o.id}</div><div class="order-id">${o.date}</div></div>
