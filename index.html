@@ -464,7 +464,6 @@
       <div id="login-fields" style="display:none">
         <div class="form-group"><label>Email or Mobile number</label><input type="text" placeholder="you@example.com or 98765 43210" id="login-identifier"></div>
         <div class="form-group"><label>Password</label><input type="password" placeholder="••••••••" id="login-pass" onkeydown="if(event.key==='Enter')handleAuth()"></div>
-        <div style="text-align:right;margin-top:-8px;margin-bottom:4px"><a onclick="openForgotPasswordModal()" style="font-size:12px;color:var(--accent);font-weight:700;cursor:pointer;text-decoration:underline">Forgot password?</a></div>
       </div>
 
       <button class="auth-submit" onclick="handleAuth()" id="auth-submit-btn">Create account</button>
@@ -492,6 +491,7 @@
     </div>
     <div class="profile-section">
       <div class="profile-item" onclick="showView('orders');setActive(document.querySelectorAll('.bottom-nav-item')[1])"><i class="ti ti-package"></i><span>My orders</span><i class="ti ti-chevron-right chevron"></i></div>
+      <div class="profile-item" onclick="openChangePasswordModal()"><i class="ti ti-lock"></i><span>Change password</span><i class="ti ti-chevron-right chevron"></i></div>
       <div class="profile-item"><i class="ti ti-map-pin"></i><span>Saved addresses</span><i class="ti ti-chevron-right chevron"></i></div>
       <div class="profile-item"><i class="ti ti-heart"></i><span>Favourites</span><i class="ti ti-chevron-right chevron"></i></div>
       <div class="profile-item"><i class="ti ti-bell"></i><span>Notifications</span><i class="ti ti-chevron-right chevron"></i></div>
@@ -618,29 +618,17 @@
   </div>
 </div>
 
-<!-- FORGOT PASSWORD MODAL -->
-<div class="loc-modal-overlay" id="forgot-modal-overlay">
+<!-- CHANGE PASSWORD MODAL (Profile section, logged-in only) -->
+<div class="loc-modal-overlay" id="change-pass-modal-overlay">
   <div class="loc-modal">
-    <h3>🔑 Reset your password</h3>
-    <p class="loc-sub">Enter the email linked to your account and we'll send you a link to reset your password.</p>
-    <div class="form-group"><label>Email</label><input type="email" placeholder="you@example.com" id="forgot-email" onkeydown="if(event.key==='Enter')sendPasswordResetEmail()"></div>
+    <h3>🔒 Change password</h3>
+    <p class="loc-sub">Enter your current password and choose a new one (min. 6 characters).</p>
+    <div class="form-group"><label>Current password</label><input type="password" placeholder="••••••••" id="change-pass-current"></div>
+    <div class="form-group"><label>New password</label><input type="password" placeholder="••••••••" id="change-pass-new"></div>
+    <div class="form-group"><label>Confirm new password</label><input type="password" placeholder="••••••••" id="change-pass-confirm" onkeydown="if(event.key==='Enter')submitChangePassword()"></div>
     <div class="loc-btn-row">
-      <button type="button" id="forgot-cancel-btn" onclick="closeForgotPasswordModal()" style="background:none;border:1px solid #ddd;color:#777">Cancel</button>
-      <button type="button" id="forgot-send-btn" onclick="sendPasswordResetEmail()" style="background:var(--accent);color:#fff">Send reset link</button>
-    </div>
-  </div>
-</div>
-
-<!-- RESET PASSWORD MODAL (opened automatically via the emailed link, e.g. ?reset_token=...) -->
-<div class="loc-modal-overlay" id="reset-modal-overlay">
-  <div class="loc-modal">
-    <h3>🔒 Set a new password</h3>
-    <p class="loc-sub">Choose a new password for your account (min. 6 characters).</p>
-    <div class="form-group"><label>New password</label><input type="password" placeholder="••••••••" id="reset-new-pass"></div>
-    <div class="form-group"><label>Confirm password</label><input type="password" placeholder="••••••••" id="reset-confirm-pass" onkeydown="if(event.key==='Enter')submitPasswordReset()"></div>
-    <div class="loc-btn-row">
-      <button type="button" id="reset-cancel-btn" onclick="closeResetPasswordModal()" style="background:none;border:1px solid #ddd;color:#777">Cancel</button>
-      <button type="button" id="reset-save-btn" onclick="submitPasswordReset()" style="background:var(--accent);color:#fff">Update password</button>
+      <button type="button" id="change-pass-cancel-btn" onclick="closeChangePasswordModal()" style="background:none;border:1px solid #ddd;color:#777">Cancel</button>
+      <button type="button" id="change-pass-save-btn" onclick="submitChangePassword()" style="background:var(--accent);color:#fff">Update password</button>
     </div>
   </div>
 </div>
@@ -832,8 +820,8 @@ async function saveDeliveryAddress(){
 }
 
 // ─── SUPABASE CONFIG ─────────────────────────────────────────
-const SUPABASE_URL = 'https://loyfgezloleupazlgnmw.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_vnyJlBniwJy0PnLbEtjDXA_v69j1Spu';
+const SUPABASE_URL = 'https://apwzofsqcswbhiutmtdz.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_hRgY5rpDFIPsg7uPYQziWA_odWuss2G';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ─── MENU (live from Supabase) ───────────────────────────────
@@ -1626,73 +1614,40 @@ function signOut(){
   setActive(document.querySelectorAll('.bottom-nav-item')[0]);
 }
 
-// ─── FORGOT / RESET PASSWORD ──────────────────────────────────
-function openForgotPasswordModal(){
-  document.getElementById('forgot-email').value = document.getElementById('login-identifier').value.includes('@') ? document.getElementById('login-identifier').value.trim() : '';
-  document.getElementById('forgot-modal-overlay').classList.add('open');
+// ─── CHANGE PASSWORD (logged-in, from Profile) ─────────────────
+function openChangePasswordModal(){
+  if(!isLoggedIn){ showToast('Please sign in first'); showView('auth'); return; }
+  document.getElementById('change-pass-current').value = '';
+  document.getElementById('change-pass-new').value = '';
+  document.getElementById('change-pass-confirm').value = '';
+  document.getElementById('change-pass-modal-overlay').classList.add('open');
 }
-function closeForgotPasswordModal(){
-  document.getElementById('forgot-modal-overlay').classList.remove('open');
+function closeChangePasswordModal(){
+  document.getElementById('change-pass-modal-overlay').classList.remove('open');
 }
-async function sendPasswordResetEmail(){
-  const email = document.getElementById('forgot-email').value.trim().toLowerCase();
-  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showToast('Please enter a valid email address'); return; }
-  const btn = document.getElementById('forgot-send-btn');
-  if(btn.dataset.cooldown === '1'){ showToast('Please wait a bit before requesting another link'); return; }
-  btn.disabled = true; const original = btn.textContent; btn.textContent = 'Sending…';
-  try{
-    // request-password-reset is a Supabase Edge Function — it looks up the
-    // account, creates a reset token, and emails the link. We always show
-    // the same success message regardless of whether the account exists,
-    // so no one can use this form to check who has an account.
-    await sb.functions.invoke('request-password-reset', { body: { email } });
-  }catch(e){ console.error('sendPasswordResetEmail:', e); }
-  btn.textContent = original;
-  closeForgotPasswordModal();
-  showToast("If that email is registered, we've sent a reset link 📩");
-  // client-side cooldown, on top of the real rate limiting in the database
-  btn.dataset.cooldown = '1'; let seconds = 30;
-  const cooldownTimer = setInterval(()=>{
-    seconds--;
-    if(seconds <= 0){ clearInterval(cooldownTimer); btn.disabled = false; delete btn.dataset.cooldown; btn.textContent = original; }
-  }, 1000);
-}
-function closeResetPasswordModal(){
-  document.getElementById('reset-modal-overlay').classList.remove('open');
-  // Clean the token out of the URL so it can't be reused/re-shown on refresh
-  const url = new URL(window.location.href);
-  url.searchParams.delete('reset_token');
-  window.history.replaceState({}, '', url.toString());
-}
-async function submitPasswordReset(){
-  const url = new URL(window.location.href);
-  const token = url.searchParams.get('reset_token');
-  const pass = document.getElementById('reset-new-pass').value;
-  const confirm = document.getElementById('reset-confirm-pass').value;
-  if(!token){ showToast('Reset link is invalid or missing. Please request a new one.'); return; }
-  if(!pass || pass.length < 6){ showToast('Password must be at least 6 characters'); return; }
-  if(pass !== confirm){ showToast('Passwords do not match'); return; }
-  const btn = document.getElementById('reset-save-btn');
+async function submitChangePassword(){
+  const current = document.getElementById('change-pass-current').value;
+  const pass = document.getElementById('change-pass-new').value;
+  const confirm = document.getElementById('change-pass-confirm').value;
+  if(!current){ showToast('Please enter your current password'); return; }
+  if(!pass || pass.length < 6){ showToast('New password must be at least 6 characters'); return; }
+  if(pass !== confirm){ showToast('New passwords do not match'); return; }
+  if(pass === current){ showToast('New password must be different from current password'); return; }
+  const btn = document.getElementById('change-pass-save-btn');
   btn.disabled = true; const original = btn.textContent; btn.textContent = 'Updating…';
-  const { error } = await sb.rpc('reset_password_with_token', { p_token: token, p_new_password: pass });
+  const { error } = await sb.rpc('customer_change_password', {
+    p_token: sessionToken, p_current_password: current, p_new_password: pass
+  });
   btn.disabled = false; btn.textContent = original;
   if(error){
-    if(error.message.includes('INVALID_OR_EXPIRED')){ showToast('This reset link is invalid or has expired. Please request a new one.'); }
+    if(error.message.includes('WRONG_PASSWORD')){ showToast('❌ Current password is incorrect'); }
+    else if(error.message.includes('SAME_PASSWORD')){ showToast('New password must be different'); }
+    else if(error.message.includes('INVALID_SESSION')){ showToast('Session expired, please sign in again'); closeChangePasswordModal(); signOut(); }
     else { showToast('❌ '+error.message); }
     return;
   }
-  closeResetPasswordModal();
-  showToast('Password updated! Please sign in with your new password. 🎉');
-  authMode = 'signup'; toggleAuth(); // ensures we land in the login view regardless of prior state
-  showView('auth');
-}
-function checkForPasswordResetLink(){
-  const url = new URL(window.location.href);
-  const token = url.searchParams.get('reset_token');
-  if(token){
-    showView('auth');
-    document.getElementById('reset-modal-overlay').classList.add('open');
-  }
+  closeChangePasswordModal();
+  showToast('Password updated successfully 🎉');
 }
 
 let toastTimer;
@@ -1719,5 +1674,4 @@ loadStoreSettings();
 restoreSession();
 renderOrders();
 toggleSignupSubmitState();
-checkForPasswordResetLink();
 </script>
