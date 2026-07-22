@@ -464,6 +464,7 @@
       <div id="login-fields" style="display:none">
         <div class="form-group"><label>Email or Mobile number</label><input type="text" placeholder="you@example.com or 98765 43210" id="login-identifier"></div>
         <div class="form-group"><label>Password</label><input type="password" placeholder="••••••••" id="login-pass" onkeydown="if(event.key==='Enter')handleAuth()"></div>
+        <div style="text-align:right;margin:-8px 0 12px"><a onclick="openForgotPasswordModal()" style="color:var(--accent);font-weight:700;font-size:12.5px;cursor:pointer">Forgot password?</a></div>
       </div>
 
       <button class="auth-submit" onclick="handleAuth()" id="auth-submit-btn">Create account</button>
@@ -629,6 +630,33 @@
     <div class="loc-btn-row">
       <button type="button" id="change-pass-cancel-btn" onclick="closeChangePasswordModal()" style="background:none;border:1px solid #ddd;color:#777">Cancel</button>
       <button type="button" id="change-pass-save-btn" onclick="submitChangePassword()" style="background:var(--accent);color:#fff">Update password</button>
+    </div>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD MODAL (2 steps: email → OTP + new password) -->
+<div class="loc-modal-overlay" id="forgot-pass-modal-overlay">
+  <div class="loc-modal">
+    <div id="forgot-pass-step1">
+      <h3>🔑 Forgot password</h3>
+      <p class="loc-sub">Enter your account email — we'll send a 6-digit code to reset your password.</p>
+      <div class="form-group"><label>Email</label><input type="email" placeholder="you@example.com" id="forgot-pass-email" onkeydown="if(event.key==='Enter')submitForgotPasswordEmail()"></div>
+      <div class="loc-btn-row">
+        <button type="button" onclick="closeForgotPasswordModal()" style="background:none;border:1px solid #ddd;color:#777">Cancel</button>
+        <button type="button" id="forgot-pass-send-btn" onclick="submitForgotPasswordEmail()" style="background:var(--accent);color:#fff">Send code</button>
+      </div>
+    </div>
+    <div id="forgot-pass-step2" style="display:none">
+      <h3>📧 Enter reset code</h3>
+      <p class="loc-sub">We sent a 6-digit code to <b id="forgot-pass-email-display"></b>. It expires in 10 minutes.</p>
+      <div class="form-group"><label>6-digit code</label><input type="text" inputmode="numeric" maxlength="6" placeholder="123456" id="forgot-pass-otp" style="letter-spacing:4px;font-weight:700"></div>
+      <div class="form-group"><label>New password <span style="font-size:11px;color:var(--text3)">(min. 6 characters)</span></label><input type="password" placeholder="••••••••" id="forgot-pass-new"></div>
+      <div class="form-group"><label>Confirm new password</label><input type="password" placeholder="••••••••" id="forgot-pass-confirm" onkeydown="if(event.key==='Enter')submitResetPassword()"></div>
+      <div class="loc-btn-row">
+        <button type="button" onclick="closeForgotPasswordModal()" style="background:none;border:1px solid #ddd;color:#777">Cancel</button>
+        <button type="button" id="forgot-pass-reset-btn" onclick="submitResetPassword()" style="background:var(--accent);color:#fff">Reset password</button>
+      </div>
+      <div style="text-align:center;margin-top:10px"><a onclick="resendForgotPasswordOtp()" style="color:var(--accent);font-weight:700;font-size:12px;cursor:pointer">Didn't get a code? Resend</a></div>
     </div>
   </div>
 </div>
@@ -1648,6 +1676,81 @@ async function submitChangePassword(){
   }
   closeChangePasswordModal();
   showToast('Password updated successfully 🎉');
+}
+
+// ─── FORGOT PASSWORD (logged-out, from Sign in screen) ─────────
+let forgotPasswordEmail = '';
+function openForgotPasswordModal(){
+  document.getElementById('forgot-pass-email').value = document.getElementById('login-identifier').value.includes('@') ? document.getElementById('login-identifier').value.trim() : '';
+  document.getElementById('forgot-pass-otp').value = '';
+  document.getElementById('forgot-pass-new').value = '';
+  document.getElementById('forgot-pass-confirm').value = '';
+  document.getElementById('forgot-pass-step1').style.display = 'block';
+  document.getElementById('forgot-pass-step2').style.display = 'none';
+  document.getElementById('forgot-pass-modal-overlay').classList.add('open');
+}
+function closeForgotPasswordModal(){
+  document.getElementById('forgot-pass-modal-overlay').classList.remove('open');
+}
+async function submitForgotPasswordEmail(){
+  const email = document.getElementById('forgot-pass-email').value.trim().toLowerCase();
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showToast('Please enter a valid email address'); return; }
+  const btn = document.getElementById('forgot-pass-send-btn');
+  btn.disabled = true; const original = btn.textContent; btn.textContent = 'Sending…';
+  try{
+    const { data, error } = await sb.functions.invoke('send-reset-otp', { body: { email } });
+    btn.disabled = false; btn.textContent = original;
+    if(error || (data && data.error)){
+      const code = (data && data.error) || '';
+      if(code === 'TOO_MANY_ATTEMPTS'){ showToast('Too many attempts. Please try again in 7 minutes.'); }
+      else { showToast('❌ Could not send code. Please try again.'); }
+      return;
+    }
+    forgotPasswordEmail = email;
+    document.getElementById('forgot-pass-email-display').textContent = email;
+    document.getElementById('forgot-pass-step1').style.display = 'none';
+    document.getElementById('forgot-pass-step2').style.display = 'block';
+    showToast('Code sent! Check your email 📧');
+  }catch(e){
+    btn.disabled = false; btn.textContent = original;
+    showToast('❌ Could not send code. Please try again.');
+  }
+}
+async function resendForgotPasswordOtp(){
+  if(!forgotPasswordEmail) return;
+  showToast('Sending a new code…');
+  const { data, error } = await sb.functions.invoke('send-reset-otp', { body: { email: forgotPasswordEmail } });
+  if(error || (data && data.error)){
+    const code = (data && data.error) || '';
+    showToast(code === 'TOO_MANY_ATTEMPTS' ? 'Too many attempts. Please try again in 7 minutes.' : '❌ Could not resend code.');
+    return;
+  }
+  showToast('New code sent! 📧');
+}
+async function submitResetPassword(){
+  const otp = document.getElementById('forgot-pass-otp').value.trim();
+  const pass = document.getElementById('forgot-pass-new').value;
+  const confirm = document.getElementById('forgot-pass-confirm').value;
+  if(!/^\d{6}$/.test(otp)){ showToast('Please enter the 6-digit code'); return; }
+  if(!pass || pass.length < 6){ showToast('New password must be at least 6 characters'); return; }
+  if(pass !== confirm){ showToast('New passwords do not match'); return; }
+  const btn = document.getElementById('forgot-pass-reset-btn');
+  btn.disabled = true; const original = btn.textContent; btn.textContent = 'Resetting…';
+  const { error } = await sb.rpc('reset_password_with_otp', {
+    p_email: forgotPasswordEmail, p_otp: otp, p_new_password: pass
+  });
+  btn.disabled = false; btn.textContent = original;
+  if(error){
+    if(error.message.includes('INVALID_OTP')){ showToast('❌ Incorrect or expired code'); }
+    else if(error.message.includes('TOO_MANY_ATTEMPTS')){ showToast('Too many attempts. Please try again in 7 minutes.'); }
+    else if(error.message.includes('PASSWORD_TOO_SHORT')){ showToast('New password must be at least 6 characters'); }
+    else { showToast('❌ '+error.message); }
+    return;
+  }
+  closeForgotPasswordModal();
+  document.getElementById('login-identifier').value = forgotPasswordEmail;
+  document.getElementById('login-pass').value = '';
+  showToast('Password reset! Please sign in with your new password 🎉');
 }
 
 let toastTimer;
